@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   MousePointer, 
   Pen, 
@@ -40,6 +40,19 @@ const TopToolbar = ({ onToggleSidebar }) => {
 
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showBgColorPicker, setShowBgColorPicker] = useState(false)
+
+  // Close popups when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowColorPicker(false)
+      setShowBgColorPicker(false)
+    }
+
+    if (showColorPicker || showBgColorPicker) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showColorPicker, showBgColorPicker])
 
   const tools = [
     { id: 'select', icon: MousePointer, label: 'Seleccionar' },
@@ -111,7 +124,11 @@ const TopToolbar = ({ onToggleSidebar }) => {
       {/* Colors */}
       <div className="flex items-center gap-2 relative">
         <button
-          onClick={() => setShowColorPicker(!showColorPicker)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowColorPicker(!showColorPicker)
+            setShowBgColorPicker(false)
+          }}
           className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors"
           title="Color"
         >
@@ -123,7 +140,10 @@ const TopToolbar = ({ onToggleSidebar }) => {
         </button>
 
         {showColorPicker && (
-          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50">
+          <div 
+            className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 w-56"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="grid grid-cols-5 gap-2 mb-2">
               {colors.map((color) => (
                 <button
@@ -155,7 +175,11 @@ const TopToolbar = ({ onToggleSidebar }) => {
       {/* Canvas Background Color */}
       <div className="flex items-center gap-2 relative">
         <button
-          onClick={() => setShowBgColorPicker(!showBgColorPicker)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowBgColorPicker(!showBgColorPicker)
+            setShowColorPicker(false)
+          }}
           className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors"
           title="Color del Lienzo"
         >
@@ -167,7 +191,10 @@ const TopToolbar = ({ onToggleSidebar }) => {
         </button>
 
         {showBgColorPicker && (
-          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50">
+          <div 
+            className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 w-56"
+            onClick={(e) => e.stopPropagation()}
+          >
             <p className="text-xs font-medium text-gray-700 mb-2">Color del lienzo</p>
             <div className="grid grid-cols-5 gap-2 mb-2">
               {['#ffffff', '#f3f4f6', '#fef3c7', '#dbeafe', '#fce7f3', '#f0fdf4', '#fef2f2', '#f5f3ff', '#000000', '#1f2937'].map((color) => (
