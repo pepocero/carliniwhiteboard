@@ -23,7 +23,8 @@ const WhiteboardCanvas = () => {
     scale,
     position,
     setScale,
-    setPosition
+    setPosition,
+    canvasBackgroundColor
   } = useWhiteboardStore()
 
   // Handle stage events
@@ -429,11 +430,11 @@ const WhiteboardCanvas = () => {
   }
 
   return (
-    <div className="canvas-container">
+    <div className="canvas-container" style={{ backgroundColor: canvasBackgroundColor }}>
       <Stage
         ref={stageRef}
-        width={window.innerWidth - 320} // Account for sidebar
-        height={window.innerHeight - 80} // Account for header
+        width={window.innerWidth} // Full width now
+        height={window.innerHeight - 134} // Account for header + toolbar
         onMouseDown={handleStageMouseDown}
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}

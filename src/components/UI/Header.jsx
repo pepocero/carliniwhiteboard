@@ -18,8 +18,6 @@ const Header = () => {
 
   const { user, logout, isAuthenticated } = useAuth()
   const [showWhiteboards, setShowWhiteboards] = useState(false)
-  const [isEditingTitle, setIsEditingTitle] = useState(false)
-  const [newTitle, setNewTitle] = useState(currentWhiteboard?.name || '')
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
@@ -44,27 +42,6 @@ const Header = () => {
   const handleLogout = () => {
     logout()
     setShowUserMenu(false)
-  }
-
-  const handleTitleChange = (e) => {
-    setNewTitle(e.target.value)
-  }
-
-  const handleTitleSubmit = () => {
-    if (newTitle.trim() && currentWhiteboard) {
-      // Update whiteboard title
-      // This would need to be implemented in the store
-      setIsEditingTitle(false)
-    }
-  }
-
-  const handleTitleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleTitleSubmit()
-    } else if (e.key === 'Escape') {
-      setNewTitle(currentWhiteboard?.name || '')
-      setIsEditingTitle(false)
-    }
   }
 
   const formatLastSaved = (timestamp) => {
@@ -94,24 +71,9 @@ const Header = () => {
 
       {/* Center Section - Title */}
       <div className="flex-1 flex justify-center">
-        {isEditingTitle ? (
-          <input
-            type="text"
-            value={newTitle}
-            onChange={handleTitleChange}
-            onBlur={handleTitleSubmit}
-            onKeyDown={handleTitleKeyDown}
-            className="text-center text-lg font-semibold text-gray-900 bg-transparent border-b-2 border-blue-500 outline-none"
-            autoFocus
-          />
-        ) : (
-          <button
-            onClick={() => setIsEditingTitle(true)}
-            className="text-center text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-          >
-            {currentWhiteboard?.name || 'Nuevo Tablero'}
-          </button>
-        )}
+        <div className="text-center text-lg font-semibold text-gray-900">
+          {currentWhiteboard?.name || 'Sin tablero seleccionado'}
+        </div>
       </div>
 
       {/* Right Section */}

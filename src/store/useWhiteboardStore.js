@@ -31,6 +31,7 @@ const useWhiteboardStore = create((set, get) => ({
   // Canvas view state
   scale: 1,
   position: { x: 0, y: 0 },
+  canvasBackgroundColor: '#ffffff',
   
   // UI state
   isLoading: false,
@@ -199,6 +200,8 @@ const useWhiteboardStore = create((set, get) => ({
   setScale: (scale) => set({ scale }),
   
   setPosition: (position) => set({ position }),
+
+  setCanvasBackgroundColor: (color) => set({ canvasBackgroundColor: color }),
   
   setLoading: (loading) => set({ isLoading: loading }),
   

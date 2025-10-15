@@ -15,7 +15,8 @@ import {
   ZoomOut,
   RotateCcw,
   Menu,
-  Palette
+  Palette,
+  Paintbrush
 } from 'lucide-react'
 import useWhiteboardStore from '../../store/useWhiteboardStore'
 
@@ -32,10 +33,13 @@ const TopToolbar = ({ onToggleSidebar }) => {
     setScale,
     setPosition,
     selectedElement,
-    updateElement
+    updateElement,
+    canvasBackgroundColor,
+    setCanvasBackgroundColor
   } = useWhiteboardStore()
 
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showBgColorPicker, setShowBgColorPicker] = useState(false)
 
   const tools = [
     { id: 'select', icon: MousePointer, label: 'Seleccionar' },
@@ -147,6 +151,49 @@ const TopToolbar = ({ onToggleSidebar }) => {
           </div>
         )}
       </div>
+
+      {/* Canvas Background Color */}
+      <div className="flex items-center gap-2 relative">
+        <button
+          onClick={() => setShowBgColorPicker(!showBgColorPicker)}
+          className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Color del Lienzo"
+        >
+          <Paintbrush size={18} />
+          <div 
+            className="w-6 h-6 rounded border-2 border-gray-300"
+            style={{ backgroundColor: canvasBackgroundColor }}
+          />
+        </button>
+
+        {showBgColorPicker && (
+          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50">
+            <p className="text-xs font-medium text-gray-700 mb-2">Color del lienzo</p>
+            <div className="grid grid-cols-5 gap-2 mb-2">
+              {['#ffffff', '#f3f4f6', '#fef3c7', '#dbeafe', '#fce7f3', '#f0fdf4', '#fef2f2', '#f5f3ff', '#000000', '#1f2937'].map((color) => (
+                <button
+                  key={color}
+                  onClick={() => setCanvasBackgroundColor(color)}
+                  className={`w-8 h-8 rounded-lg border-2 transition-all ${
+                    canvasBackgroundColor === color ? 'border-gray-900 scale-110' : 'border-gray-300'
+                  }`}
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+            </div>
+            <input
+              type="color"
+              value={canvasBackgroundColor}
+              onChange={(e) => setCanvasBackgroundColor(e.target.value)}
+              className="w-full h-8 rounded cursor-pointer"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="w-px h-8 bg-gray-200"></div>
 
       {/* Stroke Width */}
       <div className="flex items-center gap-2">
