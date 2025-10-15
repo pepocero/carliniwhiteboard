@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 // Helper function to get API URL
 const getApiUrl = () => {
-  return import.meta.env.DEV ? 'http://127.0.0.1:8787' : ''
+  return import.meta.env.DEV ? 'http://127.0.0.1:8787' : 'https://carlini-whiteboard-api.pepocero.workers.dev'
 }
 
 // Helper function to get auth headers

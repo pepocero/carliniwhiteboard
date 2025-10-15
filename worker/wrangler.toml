@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "carlini-whiteboard-db"
-database_id = "local-db"
+database_id = "53331260-7fd0-4698-804f-d2d0f450a662"
 
 # Environment variables
 [vars]

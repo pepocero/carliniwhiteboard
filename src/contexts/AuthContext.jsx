@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async (tokenToVerify) => {
     try {
-      const apiUrl = import.meta.env.DEV ? 'http://127.0.0.1:8787' : ''
+      const apiUrl = import.meta.env.DEV ? 'http://127.0.0.1:8787' : 'https://carlini-whiteboard-api.pepocero.workers.dev'
       const response = await fetch(`${apiUrl}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${tokenToVerify}`,
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const apiUrl = import.meta.env.DEV ? 'http://127.0.0.1:8787' : ''
+      const apiUrl = import.meta.env.DEV ? 'http://127.0.0.1:8787' : 'https://carlini-whiteboard-api.pepocero.workers.dev'
       const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (email, password, name) => {
     try {
-      const apiUrl = import.meta.env.DEV ? 'http://127.0.0.1:8787' : ''
+      const apiUrl = import.meta.env.DEV ? 'http://127.0.0.1:8787' : 'https://carlini-whiteboard-api.pepocero.workers.dev'
       const response = await fetch(`${apiUrl}/api/auth/register`, {
         method: 'POST',
         headers: {
