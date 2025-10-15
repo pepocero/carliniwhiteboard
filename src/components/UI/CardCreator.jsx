@@ -113,10 +113,10 @@ const CardCreator = () => {
             onChange={(e) => setSeparator(e.target.value)}
             className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder=","
-            maxLength={5}
+            maxLength={50}
           />
           <p className="text-xs text-gray-500 mt-1">
-            Ejemplos: , (coma), . (punto), ; (punto y coma), | (barra)
+            Ejemplos: , (coma), . (punto), Postdata: (palabra), | (barra)
           </p>
         </div>
 

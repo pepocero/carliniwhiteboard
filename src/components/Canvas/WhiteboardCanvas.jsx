@@ -89,6 +89,10 @@ const WhiteboardCanvas = () => {
         }
 
         addElement(textElement)
+        
+        // Switch back to select tool after creating text
+        const { setCurrentTool } = useWhiteboardStore.getState()
+        setCurrentTool('select')
       }
     } else if (currentTool === 'sticky') {
       // Handle sticky note tool
@@ -111,6 +115,10 @@ const WhiteboardCanvas = () => {
       }
 
       addElement(stickyElement)
+      
+      // Switch back to select tool after creating sticky note
+      const { setCurrentTool } = useWhiteboardStore.getState()
+      setCurrentTool('select')
     }
   }
 

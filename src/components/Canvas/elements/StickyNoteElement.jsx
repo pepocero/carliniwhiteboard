@@ -5,8 +5,6 @@ import useWhiteboardStore from '../../../store/useWhiteboardStore'
 const StickyNoteElement = ({ element }) => {
   const groupRef = useRef()
   const transformerRef = useRef()
-  const [isEditing, setIsEditing] = useState(false)
-  const [text, setText] = useState(element.text || '')
   const { selectedElement, setSelectedElement, updateElement } = useWhiteboardStore()
 
   const isSelected = selectedElement?.id === element.id
@@ -24,8 +22,11 @@ const StickyNoteElement = ({ element }) => {
   }
 
   const handleDoubleClick = (e) => {
-    setIsEditing(true)
-    setText(element.text || '')
+    e.cancelBubble = true
+    // Set editing state on the element itself to trigger modal
+    updateElement(element.id, {
+      isEditing: true
+    })
   }
 
   const handleDragEnd = (e) => {
@@ -57,25 +58,6 @@ const StickyNoteElement = ({ element }) => {
     })
   }
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
-      handleTextSubmit()
-    } else if (e.key === 'Escape') {
-      setIsEditing(false)
-      setText(element.text || '')
-    }
-  }
-
-  const handleTextSubmit = () => {
-    updateElement(element.id, {
-      text: text
-    })
-    setIsEditing(false)
-  }
-
-  const handleTextChange = (e) => {
-    setText(e.target.value)
-  }
 
   // Wrap text to fit within the sticky note
   const wrapText = (text, maxWidth) => {
@@ -105,52 +87,6 @@ const StickyNoteElement = ({ element }) => {
   }
 
   const textLines = wrapText(element.text || '', element.width - 20)
-
-  if (isEditing) {
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          left: element.x,
-          top: element.y,
-          zIndex: 1000,
-          width: element.width,
-          height: element.height
-        }}
-      >
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            backgroundColor: element.color || '#ffeb3b',
-            border: '2px solid #007bff',
-            padding: '10px',
-            boxSizing: 'border-box'
-          }}
-        >
-          <textarea
-            value={text}
-            onChange={handleTextChange}
-            onKeyDown={handleKeyDown}
-            onBlur={handleTextSubmit}
-            style={{
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              fontFamily: 'Arial',
-              backgroundColor: 'transparent',
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              color: '#333'
-            }}
-            autoFocus
-            placeholder="Escribe tu nota aquí..."
-          />
-        </div>
-      </div>
-    )
-  }
 
   return (
     <>
@@ -183,7 +119,7 @@ const StickyNoteElement = ({ element }) => {
           x={10}
           y={10}
           text={textLines.join('\n')}
-          fontSize={14}
+          fontSize={element.fontSize || 14}
           fontFamily="Arial"
           fill={element.textColor || '#333'}
           width={element.width - 20}

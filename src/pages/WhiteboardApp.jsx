@@ -4,6 +4,7 @@ import WhiteboardList from '../components/UI/WhiteboardList'
 import Toolbar from '../components/UI/Toolbar'
 import WhiteboardCanvas from '../components/Canvas/WhiteboardCanvas'
 import TextEditModal from '../components/UI/TextEditModal'
+import StickyNoteEditModal from '../components/UI/StickyNoteEditModal'
 import useWhiteboardStore from '../store/useWhiteboardStore'
 
 const WhiteboardApp = () => {
@@ -59,8 +60,9 @@ const WhiteboardApp = () => {
         </div>
       </div>
       
-      {/* Text Edit Modal */}
+      {/* Edit Modals */}
       <TextEditModal />
+      <StickyNoteEditModal />
     </div>
   )
 }

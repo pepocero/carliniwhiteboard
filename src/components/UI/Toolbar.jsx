@@ -38,6 +38,8 @@ const Toolbar = () => {
     createWhiteboard,
     scale,
     setScale,
+    selectedElement,
+    updateElement,
     setPosition
   } = useWhiteboardStore()
 
