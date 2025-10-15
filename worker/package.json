@@ -1,0 +1,22 @@
+{
+  "name": "carlini-whiteboard-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker API for Carlini Whiteboard",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create carlini-whiteboard-db",
+    "db:migrate": "wrangler d1 migrations apply carlini-whiteboard-db",
+    "db:seed": "wrangler d1 execute carlini-whiteboard-db --file=./schema.sql",
+    "db:query": "wrangler d1 execute carlini-whiteboard-db --command"
+  },
+  "devDependencies": {
+    "wrangler": "^3.19.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "drizzle-orm": "^0.44.6",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

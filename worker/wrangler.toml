@@ -1,0 +1,26 @@
+name = "carlini-whiteboard-api"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database configuration
+[[d1_databases]]
+binding = "DB"
+database_name = "carlini-whiteboard-db"
+database_id = "local-db"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+
+# KV namespaces (for future use)
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "your-kv-namespace-id"
+# preview_id = "your-preview-kv-namespace-id"
+
+# R2 buckets (for future file storage)
+# [[r2_buckets]]
+# binding = "FILES"
+# bucket_name = "carlini-whiteboard-files"
+# preview_bucket_name = "carlini-whiteboard-files-preview"
