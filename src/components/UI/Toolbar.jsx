@@ -142,7 +142,13 @@ const Toolbar = () => {
             {colors.map((color) => (
               <button
                 key={color}
-                onClick={() => setCurrentColor(color)}
+                onClick={() => {
+                  setCurrentColor(color)
+                  // If there's a selected text element, update its color
+                  if (selectedElement && selectedElement.type === 'text') {
+                    updateElement(selectedElement.id, { color })
+                  }
+                }}
                 className={`w-8 h-8 rounded-lg border-2 transition-all ${
                   currentColor === color ? 'border-gray-900 scale-110' : 'border-gray-300'
                 }`}

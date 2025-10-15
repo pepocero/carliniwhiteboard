@@ -353,7 +353,8 @@ const useWhiteboardStore = create((set, get) => ({
   deleteWhiteboard: async (id) => {
     try {
       const response = await fetch(`${getApiUrl()}/api/whiteboards/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       })
       
       if (response.ok) {

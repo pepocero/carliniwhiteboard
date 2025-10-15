@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit3, MoreVertical } from 'lucide-react'
 import useWhiteboardStore from '../../store/useWhiteboardStore'
+import DeleteConfirmModal from './DeleteConfirmModal'
 
 const WhiteboardList = () => {
   const {
@@ -16,6 +17,7 @@ const WhiteboardList = () => {
   const [editingId, setEditingId] = useState(null)
   const [editingName, setEditingName] = useState('')
   const [showMenu, setShowMenu] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
 
   useEffect(() => {
     loadWhiteboards()
@@ -29,12 +31,17 @@ const WhiteboardList = () => {
     await loadWhiteboard(id)
   }
 
-  const handleDeleteWhiteboard = async (id, e) => {
+  const handleDeleteWhiteboard = async (whiteboard, e) => {
     e.stopPropagation()
-    if (confirm('¿Estás seguro de que quieres eliminar este tablero?')) {
-      await deleteWhiteboard(id)
-    }
+    setDeleteConfirm(whiteboard)
     setShowMenu(null)
+  }
+
+  const confirmDelete = async () => {
+    if (deleteConfirm) {
+      await deleteWhiteboard(deleteConfirm.id)
+      setDeleteConfirm(null)
+    }
   }
 
   const handleEditStart = (whiteboard, e) => {
@@ -158,7 +165,7 @@ const WhiteboardList = () => {
                       <Edit3 size={12} />
                     </button>
                     <button
-                      onClick={(e) => handleDeleteWhiteboard(whiteboard.id, e)}
+                      onClick={(e) => handleDeleteWhiteboard(whiteboard, e)}
                       className="p-1 hover:bg-red-100 rounded text-red-600"
                       title="Eliminar"
                     >
@@ -171,6 +178,14 @@ const WhiteboardList = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={confirmDelete}
+        whiteboardName={deleteConfirm?.name || ''}
+      />
     </div>
   )
 }
