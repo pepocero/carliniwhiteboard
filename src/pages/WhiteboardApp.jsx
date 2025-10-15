@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Header from '../components/UI/Header'
-import WhiteboardList from '../components/UI/WhiteboardList'
-import Toolbar from '../components/UI/Toolbar'
+import TopToolbar from '../components/UI/TopToolbar'
+import CollapsibleSidebar from '../components/UI/CollapsibleSidebar'
 import WhiteboardCanvas from '../components/Canvas/WhiteboardCanvas'
 import TextEditModal from '../components/UI/TextEditModal'
 import StickyNoteEditModal from '../components/UI/StickyNoteEditModal'
@@ -9,18 +9,20 @@ import useWhiteboardStore from '../store/useWhiteboardStore'
 
 const WhiteboardApp = () => {
   const { currentWhiteboard } = useWhiteboardStore()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
+      <TopToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
-      <div className="flex-1 flex overflow-hidden">
-        <WhiteboardList />
+      <div className="flex-1 relative overflow-hidden">
+        <CollapsibleSidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+        />
         
-        <div className="flex-1 flex">
-          <Toolbar />
-          
-          <div className="flex-1 relative">
+        <div className="h-full w-full">
             {currentWhiteboard ? (
               <WhiteboardCanvas />
             ) : (
@@ -56,7 +58,6 @@ const WhiteboardApp = () => {
                 </div>
               </div>
             )}
-          </div>
         </div>
       </div>
       

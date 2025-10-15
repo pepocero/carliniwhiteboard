@@ -83,9 +83,11 @@ const Header = () => {
       {/* Left Section */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">CW</span>
-          </div>
+          <img 
+            src="/logo2.PNG" 
+            alt="Carlini Whiteboard" 
+            className="w-8 h-8 object-contain"
+          />
           <h1 className="text-xl font-bold text-gray-900">Carlini Whiteboard</h1>
         </div>
       </div>

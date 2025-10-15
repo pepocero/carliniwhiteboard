@@ -46,9 +46,11 @@ const LandingPage = () => {
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">CW</span>
-            </div>
+            <img 
+              src="/logo2.PNG" 
+              alt="Carlini Whiteboard" 
+              className="w-10 h-10 object-contain"
+            />
             <h1 className="text-2xl font-bold text-gray-900">Carlini Whiteboard</h1>
           </div>
           <div className="flex items-center gap-3">
@@ -98,19 +100,14 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Preview Image Placeholder */}
+        {/* Preview Image */}
         <div className="max-w-5xl mx-auto mt-16">
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-4">
-            <div className="aspect-video bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Layout size={40} className="text-white" />
-                </div>
-                <p className="text-gray-600 text-lg font-medium">
-                  Vista previa del whiteboard
-                </p>
-              </div>
-            </div>
+            <img 
+              src="/whiteboard.png" 
+              alt="Vista previa del whiteboard"
+              className="w-full h-auto rounded-xl"
+            />
           </div>
         </div>
       </section>
