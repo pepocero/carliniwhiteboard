@@ -27,46 +27,52 @@ const DiamondElement = ({ element }) => {
 
   const handleDragEnd = (e) => {
     const node = e.target
-    const newX = element.x + node.x()
-    const newY = element.y + node.y()
+    const pos = node.position()
+    
+    // Get the actual position from the dragged node
+    // Since points are absolute, we need to calculate the offset
+    const deltaX = pos.x
+    const deltaY = pos.y
     
     updateElement(element.id, {
-      x: newX,
-      y: newY
+      x: (element.x || 0) + deltaX,
+      y: (element.y || 0) + deltaY
     })
     
-    node.x(0)
-    node.y(0)
+    // Reset node position to 0,0 so it doesn't accumulate
+    node.position({ x: 0, y: 0 })
   }
 
   const handleTransformEnd = (e) => {
     const node = shapeRef.current
     const scaleX = node.scaleX()
     const scaleY = node.scaleY()
-
-    node.scaleX(1)
-    node.scaleY(1)
-
-    const newX = element.x + node.x()
-    const newY = element.y + node.y()
+    const pos = node.position()
 
     updateElement(element.id, {
-      x: newX,
-      y: newY,
-      width: Math.max(5, element.width * scaleX),
-      height: Math.max(5, element.height * scaleY)
+      x: (element.x || 0) + pos.x,
+      y: (element.y || 0) + pos.y,
+      width: Math.max(5, (element.width || 100) * scaleX),
+      height: Math.max(5, (element.height || 100) * scaleY)
     })
     
-    node.x(0)
-    node.y(0)
+    // Reset scale and position
+    node.scaleX(1)
+    node.scaleY(1)
+    node.position({ x: 0, y: 0 })
   }
 
-  // Create diamond shape points
+  // Create diamond shape points with absolute position
+  const x = element.x || 0
+  const y = element.y || 0
+  const width = element.width || 100
+  const height = element.height || 100
+  
   const points = [
-    element.width / 2, 0, // Top
-    element.width, element.height / 2, // Right
-    element.width / 2, element.height, // Bottom
-    0, element.height / 2 // Left
+    x + width / 2, y, // Top
+    x + width, y + height / 2, // Right
+    x + width / 2, y + height, // Bottom
+    x, y + height / 2 // Left
   ]
 
   return (
@@ -74,8 +80,6 @@ const DiamondElement = ({ element }) => {
       <Line
         ref={shapeRef}
         name={element.id}
-        x={element.x}
-        y={element.y}
         points={points}
         stroke={element.stroke || '#000000'}
         strokeWidth={element.strokeWidth || 2}

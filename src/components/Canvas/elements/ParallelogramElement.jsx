@@ -27,47 +27,46 @@ const ParallelogramElement = ({ element }) => {
 
   const handleDragEnd = (e) => {
     const node = e.target
-    const newX = element.x + node.x()
-    const newY = element.y + node.y()
+    const pos = node.position()
     
     updateElement(element.id, {
-      x: newX,
-      y: newY
+      x: (element.x || 0) + pos.x,
+      y: (element.y || 0) + pos.y
     })
     
-    node.x(0)
-    node.y(0)
+    node.position({ x: 0, y: 0 })
   }
 
   const handleTransformEnd = (e) => {
     const node = shapeRef.current
     const scaleX = node.scaleX()
     const scaleY = node.scaleY()
-
-    node.scaleX(1)
-    node.scaleY(1)
-
-    const newX = element.x + node.x()
-    const newY = element.y + node.y()
+    const pos = node.position()
 
     updateElement(element.id, {
-      x: newX,
-      y: newY,
-      width: Math.max(5, element.width * scaleX),
-      height: Math.max(5, element.height * scaleY)
+      x: (element.x || 0) + pos.x,
+      y: (element.y || 0) + pos.y,
+      width: Math.max(5, (element.width || 120) * scaleX),
+      height: Math.max(5, (element.height || 60) * scaleY)
     })
     
-    node.x(0)
-    node.y(0)
+    node.scaleX(1)
+    node.scaleY(1)
+    node.position({ x: 0, y: 0 })
   }
 
-  // Create parallelogram shape points
+  // Create parallelogram shape points with absolute position
+  const x = element.x || 0
+  const y = element.y || 0
+  const width = element.width || 120
+  const height = element.height || 60
   const skew = 20
+  
   const points = [
-    skew, 0, // Top left
-    element.width, 0, // Top right
-    element.width - skew, element.height, // Bottom right
-    0, element.height // Bottom left
+    x + skew, y, // Top left
+    x + width, y, // Top right
+    x + width - skew, y + height, // Bottom right
+    x, y + height // Bottom left
   ]
 
   return (
@@ -75,8 +74,6 @@ const ParallelogramElement = ({ element }) => {
       <Line
         ref={shapeRef}
         name={element.id}
-        x={element.x}
-        y={element.y}
         points={points}
         stroke={element.stroke || '#000000'}
         strokeWidth={element.strokeWidth || 2}
