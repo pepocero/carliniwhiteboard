@@ -10,6 +10,7 @@ import GroupElement from './elements/GroupElement'
 import PathElement from './elements/PathElement'
 import DiamondElement from './elements/DiamondElement'
 import ParallelogramElement from './elements/ParallelogramElement'
+import EllipseElement from './elements/EllipseElement'
 import ConnectorElement from './elements/ConnectorElement'
 import SelectionBox from './SelectionBox'
 import ToolHandler from './ToolHandler'
@@ -193,15 +194,14 @@ const WhiteboardCanvas = () => {
             break
           case 'flowchart-start':
             flowchartElement = {
-              type: 'rect',
+              type: 'ellipse',
               x: pos.x,
               y: pos.y,
-              width: 120,
-              height: 60,
+              radiusX: 60,
+              radiusY: 30,
               stroke: currentColor,
               strokeWidth: 2,
-              fill: 'transparent',
-              cornerRadius: 30
+              fill: 'transparent'
             }
             break
           case 'flowchart-data':
@@ -322,6 +322,8 @@ const WhiteboardCanvas = () => {
       if (tool === 'connector') {
         const toElement = findElementByKonvaNode(e.target)
         
+        console.log('Connector mouseup:', { fromElement, toElement })
+        
         if (toElement && toElement.id !== fromElement && toElement.type !== 'connector') {
           // Connected to another element
           const connector = {
@@ -331,6 +333,7 @@ const WhiteboardCanvas = () => {
             stroke: color,
             strokeWidth: strokeWidth
           }
+          console.log('Creating connected connector:', connector)
           addElement(connector)
           setCurrentTool('select')
         } else {
@@ -616,6 +619,13 @@ const WhiteboardCanvas = () => {
           width: element.width,
           height: element.height
         }
+      case 'ellipse':
+        return {
+          x: element.x - (element.radiusX || 50),
+          y: element.y - (element.radiusY || 25),
+          width: (element.radiusX || 50) * 2,
+          height: (element.radiusY || 25) * 2
+        }
       case 'connector':
         if (element.from && element.to) {
           // For connected arrows, we don't need to track bounds as they auto-update
@@ -703,6 +713,8 @@ const WhiteboardCanvas = () => {
                 return <DiamondElement key={element.id} element={element} />
               case 'parallelogram':
                 return <ParallelogramElement key={element.id} element={element} />
+              case 'ellipse':
+                return <EllipseElement key={element.id} element={element} />
               case 'connector':
                 return <ConnectorElement key={element.id} element={element} />
               case 'group':

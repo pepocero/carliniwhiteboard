@@ -5,9 +5,17 @@ import useWhiteboardStore from '../../../store/useWhiteboardStore'
 const ConnectorElement = ({ element }) => {
   const arrowRef = useRef()
   const transformerRef = useRef()
+  const [, forceUpdate] = useState({})
   const { selectedElement, setSelectedElement, updateElement, elements } = useWhiteboardStore()
 
   const isSelected = selectedElement?.id === element.id
+
+  // Force re-render when connected elements change
+  useEffect(() => {
+    if (element.from || element.to) {
+      forceUpdate({})
+    }
+  }, [elements, element.from, element.to])
 
   // Calculate connection points based on connected elements
   const getConnectionPoints = () => {
@@ -72,6 +80,13 @@ const ConnectorElement = ({ element }) => {
           width: (el.radius || 50) * 2,
           height: (el.radius || 50) * 2
         }
+      case 'ellipse':
+        return {
+          x: el.x - (el.radiusX || 50),
+          y: el.y - (el.radiusY || 25),
+          width: (el.radiusX || 50) * 2,
+          height: (el.radiusY || 25) * 2
+        }
       case 'sticky':
         return {
           x: el.x,
@@ -115,6 +130,15 @@ const ConnectorElement = ({ element }) => {
   }
 
   const { points } = getConnectionPoints()
+  
+  // Debug logging
+  console.log('ConnectorElement rendering:', {
+    id: element.id,
+    from: element.from,
+    to: element.to,
+    points,
+    stroke: element.stroke
+  })
 
   return (
     <>
