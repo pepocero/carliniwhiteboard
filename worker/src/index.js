@@ -1,6 +1,5 @@
 // Cloudflare Worker for Carlini Whiteboard API with JWT Authentication
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcryptjs'
+import { hashPassword, verifyPassword, createToken, verifyToken } from './auth.js'
 
 export default {
   async fetch(request, env, ctx) {
@@ -46,9 +45,6 @@ export default {
     }
   }
 }
-
-// JWT Secret (in production, use env.JWT_SECRET)
-const JWT_SECRET = 'your-super-secret-jwt-key-change-in-production'
 
 // Handle authentication endpoints
 async function handleAuth(request, env, corsHeaders) {
@@ -115,7 +111,7 @@ async function register(request, env, corsHeaders) {
     }
 
     // Hash password
-    const passwordHash = await bcrypt.hash(password, 10)
+    const passwordHash = await hashPassword(password)
     const userId = generateId()
     const now = new Date().toISOString()
 
@@ -126,11 +122,11 @@ async function register(request, env, corsHeaders) {
     `).bind(userId, email, passwordHash, name || email, now, now).run()
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId, email, name: name || email },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    )
+    const token = await createToken({
+      userId,
+      email,
+      name: name || email
+    })
 
     return new Response(JSON.stringify({
       success: true,
@@ -182,7 +178,7 @@ async function login(request, env, corsHeaders) {
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password_hash)
+    const isValidPassword = await verifyPassword(password, user.password_hash)
     if (!isValidPassword) {
       return new Response(JSON.stringify({ 
         error: 'Invalid credentials' 
@@ -193,11 +189,11 @@ async function login(request, env, corsHeaders) {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, name: user.name },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    )
+    const token = await createToken({
+      userId: user.id,
+      email: user.email,
+      name: user.name
+    })
 
     return new Response(JSON.stringify({
       success: true,
@@ -230,7 +226,7 @@ async function logout(request, env, corsHeaders) {
 // Get current user info
 async function getCurrentUser(request, env, corsHeaders) {
   try {
-    const user = await verifyToken(request, env)
+    const user = await authenticateRequest(request, env)
     if (!user) {
       return new Response(JSON.stringify({ 
         error: 'Unauthorized' 
@@ -256,8 +252,8 @@ async function getCurrentUser(request, env, corsHeaders) {
   }
 }
 
-// Verify JWT token
-async function verifyToken(request, env) {
+// Authenticate request
+async function authenticateRequest(request, env) {
   try {
     const authHeader = request.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -265,10 +261,10 @@ async function verifyToken(request, env) {
     }
 
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, JWT_SECRET)
-    return decoded
+    const payload = await verifyToken(token)
+    return payload
   } catch (error) {
-    console.error('Token verification error:', error)
+    console.error('Authentication error:', error)
     return null
   }
 }
@@ -280,7 +276,7 @@ async function handleWhiteboards(request, env, corsHeaders) {
   const method = request.method
 
   // Verify authentication
-  const user = await verifyToken(request, env)
+  const user = await authenticateRequest(request, env)
   if (!user) {
     return new Response(JSON.stringify({ 
       error: 'Unauthorized' 
@@ -489,7 +485,7 @@ async function handleUsers(request, env, corsHeaders) {
   const method = request.method
 
   // Verify authentication
-  const user = await verifyToken(request, env)
+  const user = await authenticateRequest(request, env)
   if (!user) {
     return new Response(JSON.stringify({ 
       error: 'Unauthorized' 

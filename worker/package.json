@@ -13,10 +13,5 @@
   },
   "devDependencies": {
     "wrangler": "^3.19.0"
-  },
-  "dependencies": {
-    "bcryptjs": "^3.0.2",
-    "drizzle-orm": "^0.44.6",
-    "jsonwebtoken": "^9.0.2"
   }
 }
