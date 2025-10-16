@@ -1,5 +1,5 @@
 import React from 'react'
-import { Line, Rect, Circle } from 'react-konva'
+import { Line, Rect, Circle, Arrow } from 'react-konva'
 
 const TempShape = ({ drawingState }) => {
   if (!drawingState || !drawingState.isDrawing) {
@@ -64,6 +64,21 @@ const TempShape = ({ drawingState }) => {
           stroke={color}
           strokeWidth={strokeWidth}
           lineCap="round"
+          globalCompositeOperation="source-over"
+        />
+      )
+
+    case 'connector':
+      return (
+        <Arrow
+          points={[startPos.x, startPos.y, currentPos.x, currentPos.y]}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          fill={color}
+          pointerLength={10}
+          pointerWidth={10}
+          lineCap="round"
+          lineJoin="round"
           globalCompositeOperation="source-over"
         />
       )

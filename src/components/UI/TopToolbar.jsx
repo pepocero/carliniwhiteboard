@@ -16,7 +16,8 @@ import {
   RotateCcw,
   Menu,
   Palette,
-  Paintbrush
+  Paintbrush,
+  MoveRight
 } from 'lucide-react'
 import useWhiteboardStore from '../../store/useWhiteboardStore'
 
@@ -49,6 +50,7 @@ const TopToolbar = ({ onToggleSidebar }) => {
     { id: 'rect', icon: Square, label: 'Rectángulo' },
     { id: 'circle', icon: Circle, label: 'Círculo' },
     { id: 'line', icon: Minus, label: 'Línea' },
+    { id: 'connector', icon: MoveRight, label: 'Conector' },
     { id: 'sticky', icon: StickyNote, label: 'Nota Adhesiva' }
   ]
 

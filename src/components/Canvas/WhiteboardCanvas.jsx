@@ -10,6 +10,7 @@ import GroupElement from './elements/GroupElement'
 import PathElement from './elements/PathElement'
 import DiamondElement from './elements/DiamondElement'
 import ParallelogramElement from './elements/ParallelogramElement'
+import ConnectorElement from './elements/ConnectorElement'
 import SelectionBox from './SelectionBox'
 import ToolHandler from './ToolHandler'
 import TempShape from './TempShape'
@@ -33,6 +34,34 @@ const WhiteboardCanvas = () => {
   // Handle stage events
   const handleStageMouseDown = (e) => {
     const { currentTool, currentColor, strokeWidth, addElement } = useWhiteboardStore.getState()
+    
+    // Handle connector tool - special case
+    if (currentTool === 'connector') {
+      const clickedElement = findElementByKonvaNode(e.target)
+      
+      if (clickedElement && clickedElement.type !== 'connector') {
+        // If we clicked on an element, start creating a connector
+        const stage = e.target.getStage()
+        const pointer = stage.getPointerPosition()
+        const scale = stage.scaleX()
+        
+        const pos = {
+          x: (pointer.x - stage.x()) / scale,
+          y: (pointer.y - stage.y()) / scale
+        }
+        
+        setDrawingState({
+          isDrawing: true,
+          tool: 'connector',
+          fromElement: clickedElement.id,
+          startPos: pos,
+          currentPos: pos,
+          color: currentColor,
+          strokeWidth: strokeWidth
+        })
+      }
+      return
+    }
     
     // Deselect all if clicking on empty area
     if (e.target === e.target.getStage()) {
@@ -286,8 +315,51 @@ const WhiteboardCanvas = () => {
 
   const handleStageMouseUp = (e) => {
     if (drawingState && drawingState.isDrawing) {
-      const { startPos, currentPos, tool, color, strokeWidth, points } = drawingState
-      const { addElement } = useWhiteboardStore.getState()
+      const { startPos, currentPos, tool, color, strokeWidth, points, fromElement } = drawingState
+      const { addElement, setCurrentTool } = useWhiteboardStore.getState()
+
+      // Handle connector tool
+      if (tool === 'connector') {
+        const toElement = findElementByKonvaNode(e.target)
+        
+        if (toElement && toElement.id !== fromElement && toElement.type !== 'connector') {
+          // Connected to another element
+          const connector = {
+            type: 'connector',
+            from: fromElement,
+            to: toElement.id,
+            stroke: color,
+            strokeWidth: strokeWidth
+          }
+          addElement(connector)
+          setCurrentTool('select')
+        } else {
+          // Not connected, create a free-floating arrow
+          const connector = {
+            type: 'connector',
+            startX: startPos.x,
+            startY: startPos.y,
+            endX: currentPos.x,
+            endY: currentPos.y,
+            stroke: color,
+            strokeWidth: strokeWidth
+          }
+          
+          // Only add if the distance is significant
+          const distance = Math.sqrt(
+            Math.pow(currentPos.x - startPos.x, 2) +
+            Math.pow(currentPos.y - startPos.y, 2)
+          )
+          
+          if (distance > 10) {
+            addElement(connector)
+            setCurrentTool('select')
+          }
+        }
+        
+        setDrawingState(null)
+        return
+      }
 
       // Create the final shape
       let finalShape = null
@@ -544,6 +616,22 @@ const WhiteboardCanvas = () => {
           width: element.width,
           height: element.height
         }
+      case 'connector':
+        if (element.from && element.to) {
+          // For connected arrows, we don't need to track bounds as they auto-update
+          return { x: 0, y: 0, width: 0, height: 0 }
+        }
+        // For free-floating arrows
+        const minX = Math.min(element.startX || 0, element.endX || 0)
+        const minY = Math.min(element.startY || 0, element.endY || 0)
+        const maxX = Math.max(element.startX || 0, element.endX || 0)
+        const maxY = Math.max(element.startY || 0, element.endY || 0)
+        return {
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY
+        }
       default:
         return { x: 0, y: 0, width: 0, height: 0 }
     }
@@ -615,6 +703,8 @@ const WhiteboardCanvas = () => {
                 return <DiamondElement key={element.id} element={element} />
               case 'parallelogram':
                 return <ParallelogramElement key={element.id} element={element} />
+              case 'connector':
+                return <ConnectorElement key={element.id} element={element} />
               case 'group':
                 return <GroupElement key={element.id} element={element} />
               default:
