@@ -322,8 +322,6 @@ const WhiteboardCanvas = () => {
       if (tool === 'connector') {
         const toElement = findElementByKonvaNode(e.target)
         
-        console.log('Connector mouseup:', { fromElement, toElement })
-        
         if (toElement && toElement.id !== fromElement && toElement.type !== 'connector') {
           // Connected to another element
           const connector = {
@@ -331,9 +329,9 @@ const WhiteboardCanvas = () => {
             from: fromElement,
             to: toElement.id,
             stroke: color,
-            strokeWidth: strokeWidth
+            strokeWidth: strokeWidth || 2
           }
-          console.log('Creating connected connector:', connector)
+          console.log('✅ Creating connector:', { from: fromElement, to: toElement.id, connector })
           addElement(connector)
           setCurrentTool('select')
         } else {

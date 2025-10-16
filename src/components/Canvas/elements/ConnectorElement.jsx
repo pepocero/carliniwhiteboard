@@ -130,15 +130,12 @@ const ConnectorElement = ({ element }) => {
   }
 
   const { points } = getConnectionPoints()
-  
-  // Debug logging
-  console.log('ConnectorElement rendering:', {
-    id: element.id,
-    from: element.from,
-    to: element.to,
-    points,
-    stroke: element.stroke
-  })
+
+  // Don't render if points are invalid
+  if (!points || points.length !== 4 || points.some(p => p === undefined || isNaN(p))) {
+    console.warn('Invalid connector points:', element.id, points)
+    return null
+  }
 
   return (
     <>
