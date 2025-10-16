@@ -10,6 +10,7 @@ import GroupElement from './elements/GroupElement'
 import PathElement from './elements/PathElement'
 import DiamondElement from './elements/DiamondElement'
 import ParallelogramElement from './elements/ParallelogramElement'
+import HexagonElement from './elements/HexagonElement'
 import EllipseElement from './elements/EllipseElement'
 import ConnectorElement from './elements/ConnectorElement'
 import SelectionBox from './SelectionBox'
@@ -206,7 +207,7 @@ const WhiteboardCanvas = () => {
             break
           case 'flowchart-data':
             flowchartElement = {
-              type: 'parallelogram',
+              type: 'hexagon',
               x: pos.x,
               y: pos.y,
               width: 120,
@@ -611,6 +612,7 @@ const WhiteboardCanvas = () => {
         }
       case 'diamond':
       case 'parallelogram':
+      case 'hexagon':
         return {
           x: element.x,
           y: element.y,
@@ -711,6 +713,8 @@ const WhiteboardCanvas = () => {
                 return <DiamondElement key={element.id} element={element} />
               case 'parallelogram':
                 return <ParallelogramElement key={element.id} element={element} />
+              case 'hexagon':
+                return <HexagonElement key={element.id} element={element} />
               case 'ellipse':
                 return <EllipseElement key={element.id} element={element} />
               case 'connector':

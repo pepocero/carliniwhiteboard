@@ -67,6 +67,7 @@ const ConnectorElement = ({ element }) => {
       case 'rect':
       case 'diamond':
       case 'parallelogram':
+      case 'hexagon':
         return {
           x: el.x,
           y: el.y,
