@@ -56,7 +56,7 @@ const Header = () => {
   }
 
   return (
-    <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+    <header className="h-16 md:h-20 bg-white border-b border-gray-200 flex items-center justify-between px-3 md:px-6">
       {/* Left Section */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
@@ -65,12 +65,12 @@ const Header = () => {
             alt="Carlini Whiteboard" 
             className="w-8 h-8 object-contain"
           />
-          <h1 className="text-xl font-bold text-gray-900">Carlini Whiteboard</h1>
+          <h1 className="text-lg md:text-xl font-bold text-gray-900">Carlini Whiteboard</h1>
         </div>
       </div>
 
       {/* Center Section - Title */}
-      <div className="flex-1 flex justify-center">
+      <div className="flex-1 flex justify-center hidden md:flex">
         <div className="text-center text-lg font-semibold text-gray-900">
           {currentWhiteboard?.name || 'Sin tablero seleccionado'}
         </div>
@@ -79,7 +79,7 @@ const Header = () => {
       {/* Right Section */}
       <div className="flex items-center gap-3">
         {/* Status */}
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
           {isSaving && (
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
@@ -92,7 +92,7 @@ const Header = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2">
           <button
             onClick={handleCreateWhiteboard}
             className="btn btn-primary"
@@ -157,7 +157,7 @@ const Header = () => {
             </button>
           )}
 
-          <button className="btn btn-ghost">
+          <button className="btn btn-ghost hidden md:inline-flex">
             <Settings size={16} />
           </button>
         </div>

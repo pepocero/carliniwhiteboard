@@ -41,19 +41,6 @@ const TopToolbar = ({ onToggleSidebar }) => {
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showBgColorPicker, setShowBgColorPicker] = useState(false)
 
-  // Close popups when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setShowColorPicker(false)
-      setShowBgColorPicker(false)
-    }
-
-    if (showColorPicker || showBgColorPicker) {
-      document.addEventListener('click', handleClickOutside)
-      return () => document.removeEventListener('click', handleClickOutside)
-    }
-  }, [showColorPicker, showBgColorPicker])
-
   const tools = [
     { id: 'select', icon: MousePointer, label: 'Seleccionar' },
     { id: 'pen', icon: Pen, label: 'Lápiz' },
@@ -84,21 +71,21 @@ const TopToolbar = ({ onToggleSidebar }) => {
   }
 
   return (
-    <div className="h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-4">
+    <div className="min-h-14 bg-white border-b border-gray-200 flex flex-wrap md:flex-nowrap items-center px-2 md:px-4 gap-2 md:gap-4 relative">
       {/* Hamburger Menu */}
       <button
         onClick={onToggleSidebar}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
         title="Tableros"
       >
         <Menu size={20} />
       </button>
 
       {/* Divider */}
-      <div className="w-px h-8 bg-gray-200"></div>
+      <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>
 
       {/* Tools */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-shrink-0">
         {tools.map((tool) => {
           const Icon = tool.icon
           return (
@@ -119,13 +106,12 @@ const TopToolbar = ({ onToggleSidebar }) => {
       </div>
 
       {/* Divider */}
-      <div className="w-px h-8 bg-gray-200"></div>
+      <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>
 
       {/* Colors */}
-      <div className="flex items-center gap-2 relative">
+      <div className="flex items-center gap-2 relative flex-shrink-0">
         <button
-          onClick={(e) => {
-            e.stopPropagation()
+          onClick={() => {
             setShowColorPicker(!showColorPicker)
             setShowBgColorPicker(false)
           }}
@@ -140,10 +126,7 @@ const TopToolbar = ({ onToggleSidebar }) => {
         </button>
 
         {showColorPicker && (
-          <div 
-            className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 w-56"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-2xl p-3 w-56" style={{ zIndex: 9999 }}>
             <div className="grid grid-cols-5 gap-2 mb-2">
               {colors.map((color) => (
                 <button
@@ -173,10 +156,9 @@ const TopToolbar = ({ onToggleSidebar }) => {
       </div>
 
       {/* Canvas Background Color */}
-      <div className="flex items-center gap-2 relative">
+      <div className="flex items-center gap-2 relative flex-shrink-0 hidden md:flex">
         <button
-          onClick={(e) => {
-            e.stopPropagation()
+          onClick={() => {
             setShowBgColorPicker(!showBgColorPicker)
             setShowColorPicker(false)
           }}
@@ -191,10 +173,7 @@ const TopToolbar = ({ onToggleSidebar }) => {
         </button>
 
         {showBgColorPicker && (
-          <div 
-            className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 w-56"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-2xl p-3 w-56" style={{ zIndex: 9999 }}>
             <p className="text-xs font-medium text-gray-700 mb-2">Color del lienzo</p>
             <div className="grid grid-cols-5 gap-2 mb-2">
               {['#ffffff', '#f3f4f6', '#fef3c7', '#dbeafe', '#fce7f3', '#f0fdf4', '#fef2f2', '#f5f3ff', '#000000', '#1f2937'].map((color) => (
@@ -220,10 +199,10 @@ const TopToolbar = ({ onToggleSidebar }) => {
       </div>
 
       {/* Divider */}
-      <div className="w-px h-8 bg-gray-200"></div>
+      <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>
 
       {/* Stroke Width */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-shrink-0 hidden md:flex">
         <input
           type="range"
           min="1"
@@ -237,10 +216,10 @@ const TopToolbar = ({ onToggleSidebar }) => {
       </div>
 
       {/* Divider */}
-      <div className="w-px h-8 bg-gray-200"></div>
+      <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-shrink-0">
         <button
           onClick={save}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -251,10 +230,10 @@ const TopToolbar = ({ onToggleSidebar }) => {
       </div>
 
       {/* Divider */}
-      <div className="w-px h-8 bg-gray-200"></div>
+      <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>
 
       {/* Zoom Controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-shrink-0">
         <button
           onClick={handleZoomOut}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

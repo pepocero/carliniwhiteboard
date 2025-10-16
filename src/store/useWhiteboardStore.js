@@ -352,6 +352,44 @@ const useWhiteboardStore = create((set, get) => ({
     }
   },
   
+  // Update whiteboard name
+  updateWhiteboard: async (id, updates) => {
+    const whiteboards = get().whiteboards
+    const whiteboard = whiteboards.find(wb => wb.id === id)
+    
+    if (!whiteboard) return
+
+    const updatedWhiteboard = { ...whiteboard, ...updates }
+    
+    // Update in store
+    const newWhiteboards = whiteboards.map(wb => 
+      wb.id === id ? updatedWhiteboard : wb
+    )
+    set({ whiteboards: newWhiteboards })
+    
+    // Update current whiteboard if it's the one being edited
+    if (get().currentWhiteboard?.id === id) {
+      set({ currentWhiteboard: updatedWhiteboard })
+    }
+
+    // Save to API
+    try {
+      await fetch(`${getApiUrl()}/api/whiteboards/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({
+          name: updatedWhiteboard.name,
+          data: updatedWhiteboard.data
+        })
+      })
+    } catch (error) {
+      console.error('Update whiteboard failed:', error)
+    }
+  },
+
   // Delete whiteboard
   deleteWhiteboard: async (id) => {
     try {

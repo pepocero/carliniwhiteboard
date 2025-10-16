@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Trash2, X, ChevronRight } from 'lucide-react'
+import { Plus, Trash2, X, ChevronRight, Edit3 } from 'lucide-react'
 import useWhiteboardStore from '../../store/useWhiteboardStore'
 import DeleteConfirmModal from './DeleteConfirmModal'
 import CardCreator from './CardCreator'
@@ -12,11 +12,14 @@ const CollapsibleSidebar = ({ isOpen, onClose }) => {
     loadWhiteboard,
     deleteWhiteboard,
     createWhiteboard,
+    updateWhiteboard,
     isLoading
   } = useWhiteboardStore()
 
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [activeTab, setActiveTab] = useState('whiteboards')
+  const [editingId, setEditingId] = useState(null)
+  const [editingName, setEditingName] = useState('')
 
   useEffect(() => {
     if (isOpen) {
@@ -37,6 +40,33 @@ const CollapsibleSidebar = ({ isOpen, onClose }) => {
     if (deleteConfirm) {
       await deleteWhiteboard(deleteConfirm.id)
       setDeleteConfirm(null)
+    }
+  }
+
+  const handleEditStart = (whiteboard, e) => {
+    e.stopPropagation()
+    setEditingId(whiteboard.id)
+    setEditingName(whiteboard.name)
+  }
+
+  const handleEditSubmit = async (id) => {
+    if (editingName.trim()) {
+      await updateWhiteboard(id, { name: editingName })
+    }
+    setEditingId(null)
+    setEditingName('')
+  }
+
+  const handleEditCancel = () => {
+    setEditingId(null)
+    setEditingName('')
+  }
+
+  const handleEditKeyDown = (e, id) => {
+    if (e.key === 'Enter') {
+      handleEditSubmit(id)
+    } else if (e.key === 'Escape') {
+      handleEditCancel()
     }
   }
 
@@ -120,8 +150,10 @@ const CollapsibleSidebar = ({ isOpen, onClose }) => {
                     <div
                       key={whiteboard.id}
                       onClick={() => {
-                        loadWhiteboard(whiteboard.id)
-                        onClose()
+                        if (editingId !== whiteboard.id) {
+                          loadWhiteboard(whiteboard.id)
+                          onClose()
+                        }
                       }}
                       className={`group p-3 mb-2 rounded-lg cursor-pointer transition-all ${
                         currentWhiteboard?.id === whiteboard.id
@@ -131,9 +163,22 @@ const CollapsibleSidebar = ({ isOpen, onClose }) => {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate mb-1">
-                            {whiteboard.name}
-                          </h4>
+                          {editingId === whiteboard.id ? (
+                            <input
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              onBlur={() => handleEditSubmit(whiteboard.id)}
+                              onKeyDown={(e) => handleEditKeyDown(e, whiteboard.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-full font-medium text-gray-900 bg-white border-2 border-blue-500 rounded px-2 py-1 mb-1 focus:outline-none"
+                              autoFocus
+                            />
+                          ) : (
+                            <h4 className="font-medium text-gray-900 truncate mb-1">
+                              {whiteboard.name}
+                            </h4>
+                          )}
                           <p className="text-xs text-gray-500">
                             {new Date(whiteboard.updated_at).toLocaleDateString('es-ES', {
                               year: 'numeric',
@@ -144,13 +189,22 @@ const CollapsibleSidebar = ({ isOpen, onClose }) => {
                             })}
                           </p>
                         </div>
-                        <button
-                          onClick={(e) => handleDeleteWhiteboard(whiteboard, e)}
-                          className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-100 rounded text-red-600 transition-all"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button
+                            onClick={(e) => handleEditStart(whiteboard, e)}
+                            className="p-2 hover:bg-blue-100 rounded text-blue-600"
+                            title="Editar nombre"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteWhiteboard(whiteboard, e)}
+                            className="p-2 hover:bg-red-100 rounded text-red-600"
+                            title="Eliminar"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

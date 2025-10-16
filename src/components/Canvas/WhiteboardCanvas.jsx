@@ -15,6 +15,7 @@ import TempShape from './TempShape'
 const WhiteboardCanvas = () => {
   const stageRef = useRef()
   const [drawingState, setDrawingState] = useState(null)
+  const [lastDist, setLastDist] = useState(0)
   const {
     elements,
     selectedElement,
@@ -146,6 +147,41 @@ const WhiteboardCanvas = () => {
     }
     
     setPosition(newPos)
+  }
+
+  // Handle pinch-to-zoom for mobile
+  const handleTouchMove = (e) => {
+    const touch1 = e.evt.touches[0]
+    const touch2 = e.evt.touches[1]
+
+    if (touch1 && touch2) {
+      e.evt.preventDefault()
+      
+      const stage = stageRef.current
+      if (!stage) return
+      
+      // Calculate distance between touches
+      const dist = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      )
+
+      if (lastDist === 0) {
+        setLastDist(dist)
+        return
+      }
+
+      const oldScale = stage.scaleX()
+      const newScale = oldScale * (dist / lastDist)
+      const clampedScale = Math.max(0.1, Math.min(5, newScale))
+      
+      setScale(clampedScale)
+      setLastDist(dist)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setLastDist(0)
   }
 
   const handleStageMouseMove = (e) => {
@@ -430,14 +466,23 @@ const WhiteboardCanvas = () => {
   }
 
   return (
-    <div className="canvas-container" style={{ backgroundColor: canvasBackgroundColor }}>
+    <div className="canvas-container" style={{ backgroundColor: canvasBackgroundColor, touchAction: 'none' }}>
       <Stage
         ref={stageRef}
-        width={window.innerWidth} // Full width now
-        height={window.innerHeight - 134} // Account for header + toolbar
+        width={window.innerWidth}
+        height={window.innerHeight - (window.innerWidth < 768 ? 120 : 134)} // Adjust for mobile header height
         onMouseDown={handleStageMouseDown}
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}
+        onTouchStart={handleStageMouseDown}
+        onTouchMove={(e) => {
+          handleTouchMove(e)
+          handleStageMouseMove(e)
+        }}
+        onTouchEnd={(e) => {
+          handleTouchEnd()
+          handleStageMouseUp(e)
+        }}
         onWheel={handleStageWheel}
         onDragEnd={handleStageDragEnd}
         draggable={currentTool === 'select'}
