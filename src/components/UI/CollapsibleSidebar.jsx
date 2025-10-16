@@ -3,6 +3,7 @@ import { Plus, Trash2, X, ChevronRight, Edit3 } from 'lucide-react'
 import useWhiteboardStore from '../../store/useWhiteboardStore'
 import DeleteConfirmModal from './DeleteConfirmModal'
 import CardCreator from './CardCreator'
+import FlowchartTool from './FlowchartTool'
 
 const CollapsibleSidebar = ({ isOpen, onClose }) => {
   const {
@@ -215,6 +216,9 @@ const CollapsibleSidebar = ({ isOpen, onClose }) => {
             <div>
               {/* Card Creator Tool */}
               <CardCreator />
+              
+              {/* Flowchart Tool */}
+              <FlowchartTool onClose={onClose} />
             </div>
           )}
         </div>

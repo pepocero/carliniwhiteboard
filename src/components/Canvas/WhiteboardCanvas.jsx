@@ -8,6 +8,8 @@ import TextElement from './elements/TextElement'
 import StickyNoteElement from './elements/StickyNoteElement'
 import GroupElement from './elements/GroupElement'
 import PathElement from './elements/PathElement'
+import DiamondElement from './elements/DiamondElement'
+import ParallelogramElement from './elements/ParallelogramElement'
 import SelectionBox from './SelectionBox'
 import ToolHandler from './ToolHandler'
 import TempShape from './TempShape'
@@ -121,6 +123,80 @@ const WhiteboardCanvas = () => {
       // Switch back to select tool after creating sticky note
       const { setCurrentTool } = useWhiteboardStore.getState()
       setCurrentTool('select')
+    } else if (currentTool.startsWith('flowchart-')) {
+      // Handle flowchart tools
+      if (e.target === e.target.getStage()) {
+        const stage = e.target.getStage()
+        const pointer = stage.getPointerPosition()
+        const scale = stage.scaleX()
+        const pos = {
+          x: (pointer.x - stage.x()) / scale,
+          y: (pointer.y - stage.y()) / scale
+        }
+
+        let flowchartElement = null
+
+        switch (currentTool) {
+          case 'flowchart-process':
+            flowchartElement = {
+              type: 'rect',
+              x: pos.x,
+              y: pos.y,
+              width: 120,
+              height: 60,
+              stroke: currentColor,
+              strokeWidth: 2,
+              fill: 'transparent',
+              cornerRadius: 5
+            }
+            break
+          case 'flowchart-decision':
+            flowchartElement = {
+              type: 'diamond',
+              x: pos.x,
+              y: pos.y,
+              width: 100,
+              height: 100,
+              stroke: currentColor,
+              strokeWidth: 2,
+              fill: 'transparent'
+            }
+            break
+          case 'flowchart-start':
+            flowchartElement = {
+              type: 'rect',
+              x: pos.x,
+              y: pos.y,
+              width: 120,
+              height: 60,
+              stroke: currentColor,
+              strokeWidth: 2,
+              fill: 'transparent',
+              cornerRadius: 30
+            }
+            break
+          case 'flowchart-data':
+            flowchartElement = {
+              type: 'parallelogram',
+              x: pos.x,
+              y: pos.y,
+              width: 120,
+              height: 60,
+              stroke: currentColor,
+              strokeWidth: 2,
+              fill: 'transparent'
+            }
+            break
+        }
+
+        if (flowchartElement) {
+          addElement(flowchartElement)
+          
+          // Switch back to select tool after creating flowchart element
+          const { setCurrentTool } = useWhiteboardStore.getState()
+          setCurrentTool('select')
+        }
+      }
     }
   }
 
@@ -460,13 +536,44 @@ const WhiteboardCanvas = () => {
           width: element.width,
           height: element.height
         }
+      case 'diamond':
+      case 'parallelogram':
+        return {
+          x: element.x,
+          y: element.y,
+          width: element.width,
+          height: element.height
+        }
       default:
         return { x: 0, y: 0, width: 0, height: 0 }
     }
   }
 
+  // Generate dot pattern for background
+  const getDotPattern = () => {
+    const dotSize = 2
+    const dotSpacing = 20
+    const canvas = document.createElement('canvas')
+    canvas.width = dotSpacing
+    canvas.height = dotSpacing
+    const ctx = canvas.getContext('2d')
+    
+    ctx.fillStyle = canvasBackgroundColor === '#ffffff' ? '#e5e7eb' : 
+                    canvasBackgroundColor === '#000000' ? '#374151' : '#d1d5db'
+    ctx.fillRect(dotSpacing / 2 - dotSize / 2, dotSpacing / 2 - dotSize / 2, dotSize, dotSize)
+    
+    return canvas.toDataURL()
+  }
+
+  const backgroundStyle = {
+    backgroundColor: canvasBackgroundColor,
+    backgroundImage: `url(${getDotPattern()})`,
+    backgroundSize: '20px 20px',
+    touchAction: 'none'
+  }
+
   return (
-    <div className="canvas-container" style={{ backgroundColor: canvasBackgroundColor, touchAction: 'none' }}>
+    <div className="canvas-container" style={backgroundStyle}>
       <Stage
         ref={stageRef}
         width={window.innerWidth}
@@ -504,6 +611,10 @@ const WhiteboardCanvas = () => {
                 return <TextElement key={element.id} element={element} />
               case 'sticky':
                 return <StickyNoteElement key={element.id} element={element} />
+              case 'diamond':
+                return <DiamondElement key={element.id} element={element} />
+              case 'parallelogram':
+                return <ParallelogramElement key={element.id} element={element} />
               case 'group':
                 return <GroupElement key={element.id} element={element} />
               default:
