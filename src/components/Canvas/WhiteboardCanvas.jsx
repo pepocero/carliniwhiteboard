@@ -475,81 +475,9 @@ const WhiteboardCanvas = () => {
     }
   }, [scale, position])
 
-  // Debounced canvas expansion function
-  const debouncedExpandCanvas = useCallback(() => {
-    if (elements.length === 0) return
-
-    const stage = stageRef.current
-    if (!stage) return
-
-    const stageWidth = stage.width()
-    const stageHeight = stage.height()
-    const scale = stage.scaleX()
-    const pos = stage.position()
-
-    // Calculate bounds of all elements
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-
-    elements.forEach(element => {
-      let bounds = getElementBounds(element)
-      minX = Math.min(minX, bounds.x)
-      minY = Math.min(minY, bounds.y)
-      maxX = Math.max(maxX, bounds.x + bounds.width)
-      maxY = Math.max(maxY, bounds.y + bounds.height)
-    })
-
-    // Add padding
-    const padding = 200
-    minX -= padding
-    minY -= padding
-    maxX += padding
-    maxY += padding
-
-    // Check if we need to expand canvas
-    const currentMinX = -pos.x / scale
-    const currentMinY = -pos.y / scale
-    const currentMaxX = currentMinX + stageWidth / scale
-    const currentMaxY = currentMinY + stageHeight / scale
-
-    let newWidth = stageWidth
-    let newHeight = stageHeight
-    let needsExpansion = false
-
-    // Only expand if elements are significantly outside current bounds
-    const expansionThreshold = 50 // Only expand if elements are 50px outside bounds
-    
-    if (maxX > currentMaxX + expansionThreshold) {
-      newWidth = Math.max(newWidth, (maxX - currentMinX) * scale)
-      needsExpansion = true
-    }
-
-    if (minX < currentMinX - expansionThreshold) {
-      newWidth = Math.max(newWidth, (currentMaxX - minX) * scale)
-      needsExpansion = true
-    }
-
-    if (maxY > currentMaxY + expansionThreshold) {
-      newHeight = Math.max(newHeight, (maxY - currentMinY) * scale)
-      needsExpansion = true
-    }
-
-    if (minY < currentMinY - expansionThreshold) {
-      newHeight = Math.max(newHeight, (currentMaxY - minY) * scale)
-      needsExpansion = true
-    }
-
-    // Update stage size only if significant expansion is needed
-    if (needsExpansion && (newWidth !== stageWidth || newHeight !== stageHeight)) {
-      stage.size({ width: newWidth, height: newHeight })
-    }
-  }, [elements])
-
-  // Expand canvas with debounce to prevent excessive updates during dragging
-  // DISABLED: Causing canvas to jump when moving shapes
-  // useEffect(() => {
-  //   const timeoutId = setTimeout(debouncedExpandCanvas, 100) // 100ms debounce
-  //   return () => clearTimeout(timeoutId)
-  // }, [debouncedExpandCanvas])
+  // REMOVED: Auto-expansion was causing canvas to jump when moving shapes
+  // The canvas is now a fixed size based on window dimensions
+  // Users can navigate using zoom and pan (dragging the background)
 
   // Helper function to find element by Konva node
   const findElementByKonvaNode = (konvaNode) => {
