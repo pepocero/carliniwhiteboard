@@ -529,10 +529,11 @@ const WhiteboardCanvas = () => {
   }, [elements])
 
   // Expand canvas with debounce to prevent excessive updates during dragging
-  useEffect(() => {
-    const timeoutId = setTimeout(debouncedExpandCanvas, 100) // 100ms debounce
-    return () => clearTimeout(timeoutId)
-  }, [debouncedExpandCanvas])
+  // DISABLED: Causing canvas to jump when moving shapes
+  // useEffect(() => {
+  //   const timeoutId = setTimeout(debouncedExpandCanvas, 100) // 100ms debounce
+  //   return () => clearTimeout(timeoutId)
+  // }, [debouncedExpandCanvas])
 
   // Helper function to find element by Konva node
   const findElementByKonvaNode = (konvaNode) => {
