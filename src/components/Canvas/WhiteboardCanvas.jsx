@@ -37,13 +37,22 @@ const WhiteboardCanvas = () => {
   const handleStageMouseDown = (e) => {
     const { currentTool, currentColor, strokeWidth, addElement } = useWhiteboardStore.getState()
     
+    // Disable stage dragging if we clicked on an element (not the stage itself)
+    const stage = e.target.getStage()
+    if (e.target !== stage) {
+      // Clicked on an element, not the stage background
+      stage.draggable(false)
+    } else if (currentTool === 'select') {
+      // Clicked on empty space with select tool - allow stage dragging
+      stage.draggable(true)
+    }
+    
     // Handle connector tool - special case
     if (currentTool === 'connector') {
       const clickedElement = findElementByKonvaNode(e.target)
       
       if (clickedElement && clickedElement.type !== 'connector') {
         // If we clicked on an element, start creating a connector
-        const stage = e.target.getStage()
         const pointer = stage.getPointerPosition()
         const scale = stage.scaleX()
         
@@ -66,7 +75,7 @@ const WhiteboardCanvas = () => {
     }
     
     // Deselect all if clicking on empty area
-    if (e.target === e.target.getStage()) {
+    if (e.target === stage) {
       useWhiteboardStore.getState().clearSelection()
     } else if (currentTool === 'eraser') {
       // Handle eraser tool - remove clicked element
@@ -315,6 +324,13 @@ const WhiteboardCanvas = () => {
   }
 
   const handleStageMouseUp = (e) => {
+    // Re-enable stage dragging after mouse up (if in select mode)
+    const stage = e.target.getStage()
+    const { currentTool } = useWhiteboardStore.getState()
+    if (currentTool === 'select') {
+      stage.draggable(true)
+    }
+    
     if (drawingState && drawingState.isDrawing) {
       const { startPos, currentPos, tool, color, strokeWidth, points, fromElement } = drawingState
       const { addElement, setCurrentTool } = useWhiteboardStore.getState()
