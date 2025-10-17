@@ -6,16 +6,27 @@ const ConnectorElement = ({ element }) => {
   const arrowRef = useRef()
   const transformerRef = useRef()
   const [, forceUpdate] = useState({})
-  const { selectedElement, setSelectedElement, updateElement, elements } = useWhiteboardStore()
+  
+  // Subscribe to all elements to get real-time updates
+  const elements = useWhiteboardStore(state => state.elements)
+  const selectedElement = useWhiteboardStore(state => state.selectedElement)
+  const setSelectedElement = useWhiteboardStore(state => state.setSelectedElement)
+  const updateElement = useWhiteboardStore(state => state.updateElement)
 
   const isSelected = selectedElement?.id === element.id
 
-  // Force re-render when connected elements change
+  // Get the connected elements
+  const fromElement = elements.find(el => el.id === element.from)
+  const toElement = elements.find(el => el.id === element.to)
+  
+  // Force re-render when connected elements change position
+  // This ensures the connector updates in real-time while dragging connected shapes
   useEffect(() => {
-    if (element.from || element.to) {
+    if (fromElement || toElement) {
       forceUpdate({})
     }
-  }, [elements, element.from, element.to])
+  }, [fromElement?.x, fromElement?.y, fromElement?.width, fromElement?.height, 
+      toElement?.x, toElement?.y, toElement?.width, toElement?.height])
 
   // Calculate connection points based on connected elements
   const getConnectionPoints = () => {

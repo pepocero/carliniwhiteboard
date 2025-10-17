@@ -27,14 +27,13 @@ const EllipseElement = ({ element }) => {
 
   const handleDragEnd = (e) => {
     const node = e.target
-    const newX = element.x + node.x()
-    const newY = element.y + node.y()
     
     updateElement(element.id, {
-      x: newX,
-      y: newY
+      x: node.x(),
+      y: node.y()
     })
     
+    // Reset position to prevent accumulation
     node.x(0)
     node.y(0)
   }
@@ -44,21 +43,14 @@ const EllipseElement = ({ element }) => {
     const scaleX = node.scaleX()
     const scaleY = node.scaleY()
 
-    node.scaleX(1)
-    node.scaleY(1)
-
-    const newX = element.x + node.x()
-    const newY = element.y + node.y()
-
     updateElement(element.id, {
-      x: newX,
-      y: newY,
       radiusX: Math.max(5, (element.radiusX || 50) * scaleX),
       radiusY: Math.max(5, (element.radiusY || 25) * scaleY)
     })
     
-    node.x(0)
-    node.y(0)
+    // Reset only scale
+    node.scaleX(1)
+    node.scaleY(1)
   }
 
   return (

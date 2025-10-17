@@ -38,16 +38,14 @@ const RectangleElement = ({ element }) => {
     const scaleX = node.scaleX()
     const scaleY = node.scaleY()
 
-    // Reset scale to 1
-    node.scaleX(1)
-    node.scaleY(1)
-
     updateElement(element.id, {
-      x: node.x(),
-      y: node.y(),
       width: Math.max(5, node.width() * scaleX),
       height: Math.max(5, node.height() * scaleY)
     })
+    
+    // Reset scale to 1
+    node.scaleX(1)
+    node.scaleY(1)
   }
 
   return (

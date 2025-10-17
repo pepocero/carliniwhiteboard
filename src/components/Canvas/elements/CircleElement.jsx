@@ -38,18 +38,16 @@ const CircleElement = ({ element }) => {
     const scaleX = node.scaleX()
     const scaleY = node.scaleY()
 
-    // Reset scale to 1
-    node.scaleX(1)
-    node.scaleY(1)
-
     // Use the average of scaleX and scaleY for uniform scaling
     const scale = (scaleX + scaleY) / 2
 
     updateElement(element.id, {
-      x: node.x(),
-      y: node.y(),
       radius: Math.max(5, node.radius() * scale)
     })
+    
+    // Reset scale to 1
+    node.scaleX(1)
+    node.scaleY(1)
   }
 
   return (

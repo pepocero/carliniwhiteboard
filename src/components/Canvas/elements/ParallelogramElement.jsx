@@ -27,46 +27,42 @@ const ParallelogramElement = ({ element }) => {
 
   const handleDragEnd = (e) => {
     const node = e.target
-    const pos = node.position()
     
     updateElement(element.id, {
-      x: (element.x || 0) + pos.x,
-      y: (element.y || 0) + pos.y
+      x: node.x(),
+      y: node.y()
     })
     
-    node.position({ x: 0, y: 0 })
+    // Reset position to prevent accumulation
+    node.x(0)
+    node.y(0)
   }
 
   const handleTransformEnd = (e) => {
     const node = shapeRef.current
     const scaleX = node.scaleX()
     const scaleY = node.scaleY()
-    const pos = node.position()
 
     updateElement(element.id, {
-      x: (element.x || 0) + pos.x,
-      y: (element.y || 0) + pos.y,
       width: Math.max(5, (element.width || 120) * scaleX),
       height: Math.max(5, (element.height || 60) * scaleY)
     })
     
+    // Reset only scale
     node.scaleX(1)
     node.scaleY(1)
-    node.position({ x: 0, y: 0 })
   }
 
-  // Create parallelogram shape points with absolute position
-  const x = element.x || 0
-  const y = element.y || 0
+  // Create parallelogram shape points (RELATIVE to x,y)
   const width = element.width || 120
   const height = element.height || 60
   const skew = 20
   
   const points = [
-    x + skew, y, // Top left
-    x + width, y, // Top right
-    x + width - skew, y + height, // Bottom right
-    x, y + height // Bottom left
+    skew, 0, // Top left
+    width, 0, // Top right
+    width - skew, height, // Bottom right
+    0, height // Bottom left
   ]
 
   return (
@@ -74,6 +70,8 @@ const ParallelogramElement = ({ element }) => {
       <Line
         ref={shapeRef}
         name={element.id}
+        x={element.x || 0}
+        y={element.y || 0}
         points={points}
         stroke={element.stroke || '#000000'}
         strokeWidth={element.strokeWidth || 2}

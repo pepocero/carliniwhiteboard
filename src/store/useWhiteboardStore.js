@@ -33,6 +33,9 @@ const useWhiteboardStore = create((set, get) => ({
   position: { x: 0, y: 0 },
   canvasBackgroundColor: '#ffffff',
   
+  // Connection state
+  tempConnection: null, // { fromElement, fromAnchor, currentPos }
+  
   // UI state
   isLoading: false,
   isSaving: false,
@@ -71,11 +74,16 @@ const useWhiteboardStore = create((set, get) => ({
   }),
   
   updateElement: (id, updates) => set((state) => {
+    console.log('📝 STORE updateElement called:', { id, updates })
+    
     const newElements = state.elements.map(element => 
       element.id === id 
         ? { ...element, ...updates, updatedAt: new Date().toISOString() }
         : element
     )
+    
+    const updatedElement = newElements.find(el => el.id === id)
+    console.log('📝 STORE element after update:', updatedElement)
     
     // Trigger auto-save
     get().scheduleAutoSave()
@@ -202,6 +210,8 @@ const useWhiteboardStore = create((set, get) => ({
   setPosition: (position) => set({ position }),
 
   setCanvasBackgroundColor: (color) => set({ canvasBackgroundColor: color }),
+  
+  setTempConnection: (tempConnection) => set({ tempConnection }),
   
   setLoading: (loading) => set({ isLoading: loading }),
   

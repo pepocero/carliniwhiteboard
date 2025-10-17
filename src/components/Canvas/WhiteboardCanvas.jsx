@@ -13,6 +13,7 @@ import ParallelogramElement from './elements/ParallelogramElement'
 import HexagonElement from './elements/HexagonElement'
 import EllipseElement from './elements/EllipseElement'
 import ConnectorElement from './elements/ConnectorElement'
+import AnchorPoints from './elements/AnchorPoints'
 import SelectionBox from './SelectionBox'
 import ToolHandler from './ToolHandler'
 import TempShape from './TempShape'
@@ -30,7 +31,10 @@ const WhiteboardCanvas = () => {
     position,
     setScale,
     setPosition,
-    canvasBackgroundColor
+    canvasBackgroundColor,
+    tempConnection,
+    setTempConnection,
+    addElement
   } = useWhiteboardStore()
 
   // Handle stage events
@@ -457,6 +461,110 @@ const WhiteboardCanvas = () => {
     }
   }
 
+  // Handle anchor point drag to create connections
+  const handleAnchorDragStart = (elementId, anchorId, e) => {
+    const element = elements.find(el => el.id === elementId)
+    if (!element) return
+
+    const stage = e.target.getStage()
+    const pointerPos = stage.getPointerPosition()
+    
+    // Get absolute position considering scale and stage position
+    const scale = stage.scaleX()
+    const stagePos = stage.position()
+    
+    const absPos = {
+      x: (pointerPos.x - stagePos.x) / scale,
+      y: (pointerPos.y - stagePos.y) / scale
+    }
+    
+    setTempConnection({
+      fromElement: elementId,
+      fromAnchor: anchorId,
+      startPos: absPos,
+      currentPos: absPos
+    })
+  }
+
+  const handleAnchorDragMove = (elementId, anchorId, e) => {
+    if (!tempConnection) return
+
+    const stage = e.target.getStage()
+    const pointerPos = stage.getPointerPosition()
+    
+    // Get absolute position considering scale and stage position
+    const scale = stage.scaleX()
+    const stagePos = stage.position()
+    
+    const absPos = {
+      x: (pointerPos.x - stagePos.x) / scale,
+      y: (pointerPos.y - stagePos.y) / scale
+    }
+    
+    setTempConnection({
+      ...tempConnection,
+      currentPos: absPos
+    })
+  }
+
+  const handleAnchorDragEnd = (elementId, anchorId, e) => {
+    if (!tempConnection) return
+
+    const stage = e.target.getStage()
+    const pointerPos = stage.getPointerPosition()
+    
+    // Find if we dropped on another element
+    const targetNode = stage.getIntersection(pointerPos)
+    let toElement = null
+    let toAnchor = 'left'
+    
+    if (targetNode) {
+      const targetId = targetNode.name()
+      toElement = elements.find(el => 
+        el.id === targetId && 
+        el.id !== elementId &&
+        ['rect', 'circle', 'diamond', 'ellipse', 'hexagon', 'parallelogram'].includes(el.type)
+      )
+      
+      // If we found a target element, calculate the closest anchor point
+      if (toElement) {
+        const bounds = getElementBounds(toElement)
+        const centerX = bounds.x + bounds.width / 2
+        const centerY = bounds.y + bounds.height / 2
+        
+        // Calculate which side is closest to the pointer
+        const dx = pointerPos.x - centerX
+        const dy = pointerPos.y - centerY
+        const absX = Math.abs(dx)
+        const absY = Math.abs(dy)
+        
+        if (absX > absY) {
+          toAnchor = dx > 0 ? 'right' : 'left'
+        } else {
+          toAnchor = dy > 0 ? 'bottom' : 'top'
+        }
+      }
+    }
+
+    if (toElement) {
+      // Create connector between elements
+      const { currentColor, strokeWidth } = useWhiteboardStore.getState()
+      
+      addElement({
+        type: 'connector',
+        from: elementId,
+        fromAnchor: anchorId,
+        to: toElement.id,
+        toAnchor: toAnchor,
+        stroke: currentColor,
+        strokeWidth: strokeWidth
+      })
+    }
+
+    // Clear temp connection
+    setTempConnection(null)
+  }
+
   const handleStageDragEnd = (e) => {
     const stage = e.target
     setPosition({
@@ -474,6 +582,19 @@ const WhiteboardCanvas = () => {
       stage.batchDraw()
     }
   }, [scale, position])
+
+  // Handle Delete key to remove selected element (including connectors)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Delete' && selectedElement) {
+        const { deleteElement } = useWhiteboardStore.getState()
+        deleteElement(selectedElement.id)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedElement])
 
   // REMOVED: Auto-expansion was causing canvas to jump when moving shapes
   // The canvas is now a fixed size based on window dimensions
@@ -634,9 +755,9 @@ const WhiteboardCanvas = () => {
           handleStageMouseUp(e)
         }}
         onWheel={handleStageWheel}
-        onDragEnd={handleStageDragEnd}
-        draggable={currentTool === 'select'}
-        style={{ cursor: currentTool === 'select' ? 'grab' : 'default' }}
+        onDragMove={handleAnchorDragMove}
+        draggable={false}
+        style={{ cursor: currentTool === 'select' ? 'default' : 'crosshair' }}
       >
         <Layer>
           {/* Render all elements */}
@@ -679,6 +800,35 @@ const WhiteboardCanvas = () => {
           {/* Temporary shape while drawing */}
           {drawingState && drawingState.isDrawing && (
             <TempShape drawingState={drawingState} />
+          )}
+          
+          {/* Anchor points for selected flowchart shapes */}
+          {selectedElement && 
+           ['rect', 'circle', 'diamond', 'ellipse', 'hexagon', 'parallelogram'].includes(selectedElement.type) && (
+            <AnchorPoints 
+              element={selectedElement} 
+              onAnchorDragStart={handleAnchorDragStart}
+              onAnchorDragMove={handleAnchorDragMove}
+              onAnchorDragEnd={handleAnchorDragEnd}
+            />
+          )}
+          
+          {/* Temporary connection line while dragging from anchor */}
+          {tempConnection && (
+            <LineElement 
+              element={{
+                id: 'temp-connection',
+                type: 'line',
+                points: [
+                  tempConnection.startPos.x,
+                  tempConnection.startPos.y,
+                  tempConnection.currentPos.x,
+                  tempConnection.currentPos.y
+                ],
+                stroke: '#4F46E5',
+                strokeWidth: 2
+              }}
+            />
           )}
           
           {/* Tool handler for drawing tools */}
