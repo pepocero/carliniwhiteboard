@@ -27,6 +27,7 @@ const WhiteboardCanvas = () => {
     selectedElement,
     selectedElements,
     currentTool,
+    interactionMode,
     scale,
     position,
     setScale,
@@ -39,20 +40,41 @@ const WhiteboardCanvas = () => {
 
   // Handle stage events
   const handleStageMouseDown = (e) => {
-    const { currentTool, currentColor, strokeWidth, addElement } = useWhiteboardStore.getState()
+    const { currentTool, currentColor, strokeWidth, addElement, interactionMode } = useWhiteboardStore.getState()
+    
+    const stage = e.target.getStage()
+    
+    // Si estamos en modo pan, solo habilitar arrastre si hacemos clic en el stage vacío
+    if (interactionMode === 'pan') {
+      if (e.target === stage) {
+        // Clic en área vacía - permitir arrastre del stage
+        stage.draggable(true)
+        return // No hacer nada más si estamos en modo pan y clicamos en área vacía
+      } else {
+        // Clic en un elemento - deshabilitar arrastre para permitir selección
+        stage.draggable(false)
+        // Continuar con el flujo normal para seleccionar el elemento
+      }
+    }
+    
+    // Si estamos en modo zoom, no hacer nada (el zoom se maneja con la rueda del mouse o pinch)
+    if (interactionMode === 'zoom') {
+      return
+    }
+    
+    // Si estamos en modo draw, deshabilitar arrastre del stage
+    if (interactionMode === 'draw') {
+      stage.draggable(false)
+    }
     
     // Disable stage dragging if we clicked on an element (not the stage itself)
-    const stage = e.target.getStage()
     if (e.target !== stage) {
       // Clicked on an element, not the stage background
       stage.draggable(false)
-    } else if (currentTool === 'select') {
-      // Clicked on empty space with select tool - allow stage dragging
-      stage.draggable(true)
     }
     
-    // Handle connector tool - special case
-    if (currentTool === 'connector') {
+    // Handle connector tool - special case (solo en modo draw)
+    if (interactionMode === 'draw' && currentTool === 'connector') {
       const clickedElement = findElementByKonvaNode(e.target)
       
       if (clickedElement && clickedElement.type !== 'connector') {
@@ -90,7 +112,8 @@ const WhiteboardCanvas = () => {
       }
     }
     
-    if (['pen', 'rect', 'circle', 'line'].includes(currentTool)) {
+    // Solo permitir dibujar si estamos en modo draw
+    if (interactionMode === 'draw' && ['pen', 'rect', 'circle', 'line'].includes(currentTool)) {
       const stage = e.target.getStage()
       const pointer = stage.getPointerPosition()
       const scale = stage.scaleX()
@@ -115,7 +138,7 @@ const WhiteboardCanvas = () => {
       }
 
       setDrawingState(newDrawingState)
-    } else if (currentTool === 'text') {
+    } else if (interactionMode === 'draw' && currentTool === 'text') {
       // Handle text tool - only create if clicking on empty area
       if (e.target === e.target.getStage()) {
         const stage = e.target.getStage()
@@ -142,7 +165,7 @@ const WhiteboardCanvas = () => {
         const { setCurrentTool } = useWhiteboardStore.getState()
         setCurrentTool('select')
       }
-    } else if (currentTool === 'sticky') {
+    } else if (interactionMode === 'draw' && currentTool === 'sticky') {
       // Handle sticky note tool
       const stage = e.target.getStage()
       const pointer = stage.getPointerPosition()
@@ -167,7 +190,7 @@ const WhiteboardCanvas = () => {
       // Switch back to select tool after creating sticky note
       const { setCurrentTool } = useWhiteboardStore.getState()
       setCurrentTool('select')
-    } else if (currentTool.startsWith('flowchart-')) {
+    } else if (interactionMode === 'draw' && currentTool.startsWith('flowchart-')) {
       // Handle flowchart tools
       if (e.target === e.target.getStage()) {
         const stage = e.target.getStage()
@@ -244,6 +267,12 @@ const WhiteboardCanvas = () => {
   }
 
   const handleStageWheel = (e) => {
+    // Solo permitir zoom si estamos en modo zoom o pan (pero no en modo draw)
+    const { interactionMode } = useWhiteboardStore.getState()
+    if (interactionMode === 'draw') {
+      return // No hacer zoom si estamos en modo draw
+    }
+    
     e.evt.preventDefault()
     
     const stage = e.target.getStage()
@@ -268,14 +297,37 @@ const WhiteboardCanvas = () => {
     setPosition(newPos)
   }
 
+  // Handle touch events for mobile
+  const handleTouchStart = (e) => {
+    const { interactionMode } = useWhiteboardStore.getState()
+    
+    // Prevenir comportamiento por defecto del navegador
+    if (interactionMode === 'draw' || interactionMode === 'pan' || interactionMode === 'zoom') {
+      e.evt.preventDefault()
+    }
+    
+    // Si estamos en modo pan, habilitar arrastre
+    if (interactionMode === 'pan') {
+      const stage = e.target.getStage()
+      stage.draggable(true)
+    }
+    
+    // Llamar al handler normal de mouse down para dibujar
+    handleStageMouseDown(e)
+  }
+
   // Handle pinch-to-zoom for mobile
   const handleTouchMove = (e) => {
+    const { interactionMode } = useWhiteboardStore.getState()
+    
     const touch1 = e.evt.touches[0]
     const touch2 = e.evt.touches[1]
 
-    if (touch1 && touch2) {
-      e.evt.preventDefault()
-      
+    // Prevenir comportamiento por defecto del navegador
+    e.evt.preventDefault()
+
+    // Solo permitir pinch-to-zoom si estamos en modo zoom
+    if (touch1 && touch2 && interactionMode === 'zoom') {
       const stage = stageRef.current
       if (!stage) return
       
@@ -296,15 +348,38 @@ const WhiteboardCanvas = () => {
       
       setScale(clampedScale)
       setLastDist(dist)
+      return
+    }
+    
+    // Si estamos en modo pan con un solo dedo, el arrastre se maneja automáticamente
+    // Si estamos en modo draw, continuar con el dibujo normal
+    if (interactionMode === 'draw' || interactionMode === 'pan') {
+      // Llamar al handler normal de mouse move para dibujar o arrastrar
+      handleStageMouseMove(e)
+    }
+  }
+  
+  const handleTouchEnd = (e) => {
+    const { interactionMode } = useWhiteboardStore.getState()
+    
+    // Resetear distancia para pinch-to-zoom
+    setLastDist(0)
+    
+    // Llamar al handler normal de mouse up
+    handleStageMouseUp(e)
+    
+    // Si estamos en modo pan, mantener arrastre habilitado
+    if (interactionMode === 'pan') {
+      const stage = e.target.getStage()
+      stage.draggable(true)
     }
   }
 
-  const handleTouchEnd = () => {
-    setLastDist(0)
-  }
-
   const handleStageMouseMove = (e) => {
-    if (drawingState && drawingState.isDrawing) {
+    const { interactionMode } = useWhiteboardStore.getState()
+    
+    // Solo permitir dibujar si estamos en modo draw
+    if (interactionMode === 'draw' && drawingState && drawingState.isDrawing) {
       const stage = e.target.getStage()
       const pointer = stage.getPointerPosition()
       const scale = stage.scaleX()
@@ -328,11 +403,14 @@ const WhiteboardCanvas = () => {
   }
 
   const handleStageMouseUp = (e) => {
-    // Re-enable stage dragging after mouse up (if in select mode)
     const stage = e.target.getStage()
-    const { currentTool } = useWhiteboardStore.getState()
-    if (currentTool === 'select') {
+    const { interactionMode } = useWhiteboardStore.getState()
+    
+    // Solo habilitar arrastre si estamos en modo pan
+    if (interactionMode === 'pan') {
       stage.draggable(true)
+    } else {
+      stage.draggable(false)
     }
     
     if (drawingState && drawingState.isDrawing) {
@@ -583,6 +661,14 @@ const WhiteboardCanvas = () => {
     }
   }, [scale, position])
 
+  // Update stage draggable state when interaction mode changes
+  useEffect(() => {
+    if (stageRef.current) {
+      const stage = stageRef.current
+      stage.draggable(interactionMode === 'pan')
+    }
+  }, [interactionMode])
+
   // Handle Delete key to remove selected element (including connectors)
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -745,19 +831,21 @@ const WhiteboardCanvas = () => {
         onMouseDown={handleStageMouseDown}
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}
-        onTouchStart={handleStageMouseDown}
-        onTouchMove={(e) => {
-          handleTouchMove(e)
-          handleStageMouseMove(e)
-        }}
-        onTouchEnd={(e) => {
-          handleTouchEnd()
-          handleStageMouseUp(e)
-        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onWheel={handleStageWheel}
         onDragMove={handleAnchorDragMove}
-        draggable={false}
-        style={{ cursor: currentTool === 'select' ? 'default' : 'crosshair' }}
+        draggable={interactionMode === 'pan'}
+        style={{ 
+          cursor: interactionMode === 'pan' 
+            ? 'move' 
+            : interactionMode === 'zoom' 
+            ? 'zoom-in' 
+            : currentTool === 'select' 
+            ? 'default' 
+            : 'crosshair' 
+        }}
       >
         <Layer>
           {/* Render all elements */}

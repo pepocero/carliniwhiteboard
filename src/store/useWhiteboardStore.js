@@ -28,6 +28,9 @@ const useWhiteboardStore = create((set, get) => ({
   strokeWidth: 3,
   fontSize: 16,
   
+  // Interaction mode: 'draw', 'pan', 'zoom'
+  interactionMode: 'draw',
+  
   // Canvas view state
   scale: 1,
   position: { x: 0, y: 0 },
@@ -198,6 +201,8 @@ const useWhiteboardStore = create((set, get) => ({
     selectedElement: null,
     selectedElements: []
   }),
+  
+  setInteractionMode: (mode) => set({ interactionMode: mode }),
   
   setCurrentColor: (color) => set({ currentColor: color }),
   

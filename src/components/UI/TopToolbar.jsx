@@ -17,7 +17,8 @@ import {
   Menu,
   Palette,
   Paintbrush,
-  MoveRight
+  MoveRight,
+  Move
 } from 'lucide-react'
 import useWhiteboardStore from '../../store/useWhiteboardStore'
 
@@ -26,9 +27,11 @@ const TopToolbar = ({ onToggleSidebar }) => {
     currentTool,
     currentColor,
     strokeWidth,
+    interactionMode,
     setCurrentTool,
     setCurrentColor,
     setStrokeWidth,
+    setInteractionMode,
     save,
     scale,
     setScale,
@@ -86,6 +89,46 @@ const TopToolbar = ({ onToggleSidebar }) => {
       {/* Divider */}
       <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>
 
+      {/* Interaction Mode Buttons - Always visible, especially important on mobile */}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <button
+          onClick={() => setInteractionMode('draw')}
+          className={`p-2 rounded-lg transition-colors ${
+            interactionMode === 'draw' 
+              ? 'bg-blue-100 text-blue-600' 
+              : 'hover:bg-gray-100 text-gray-700'
+          }`}
+          title="Modo Dibujar"
+        >
+          <Pen size={18} />
+        </button>
+        <button
+          onClick={() => setInteractionMode('pan')}
+          className={`p-2 rounded-lg transition-colors ${
+            interactionMode === 'pan' 
+              ? 'bg-blue-100 text-blue-600' 
+              : 'hover:bg-gray-100 text-gray-700'
+          }`}
+          title="Mover Lienzo"
+        >
+          <Move size={18} />
+        </button>
+        <button
+          onClick={() => setInteractionMode('zoom')}
+          className={`p-2 rounded-lg transition-colors ${
+            interactionMode === 'zoom' 
+              ? 'bg-blue-100 text-blue-600' 
+              : 'hover:bg-gray-100 text-gray-700'
+          }`}
+          title="Modo Zoom"
+        >
+          <ZoomIn size={18} />
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>
+
       {/* Tools */}
       <div className="flex items-center gap-1 flex-shrink-0">
         {tools.map((tool) => {
@@ -93,7 +136,13 @@ const TopToolbar = ({ onToggleSidebar }) => {
           return (
             <button
               key={tool.id}
-              onClick={() => setCurrentTool(tool.id)}
+              onClick={() => {
+                setCurrentTool(tool.id)
+                // Si seleccionamos una herramienta de dibujo, cambiar automáticamente a modo draw
+                if (['pen', 'rect', 'circle', 'line', 'text', 'sticky', 'connector'].includes(tool.id)) {
+                  setInteractionMode('draw')
+                }
+              }}
               className={`p-2 rounded-lg transition-colors ${
                 currentTool === tool.id 
                   ? 'bg-blue-100 text-blue-600' 
