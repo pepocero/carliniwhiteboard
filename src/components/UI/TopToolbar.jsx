@@ -27,10 +27,12 @@ const TopToolbar = ({ onToggleSidebar }) => {
     currentTool,
     currentColor,
     strokeWidth,
+    eraserSize,
     interactionMode,
     setCurrentTool,
     setCurrentColor,
     setStrokeWidth,
+    setEraserSize,
     setInteractionMode,
     save,
     scale,
@@ -47,7 +49,6 @@ const TopToolbar = ({ onToggleSidebar }) => {
 
   const tools = [
     { id: 'select', icon: MousePointer, label: 'Seleccionar' },
-    { id: 'pen', icon: Pen, label: 'Lápiz' },
     { id: 'eraser', icon: Eraser, label: 'Borrador' },
     { id: 'text', icon: Type, label: 'Texto' },
     { id: 'rect', icon: Square, label: 'Rectángulo' },
@@ -92,17 +93,6 @@ const TopToolbar = ({ onToggleSidebar }) => {
       {/* Interaction Mode Buttons - Always visible, especially important on mobile */}
       <div className="flex items-center gap-1 flex-shrink-0">
         <button
-          onClick={() => setInteractionMode('draw')}
-          className={`p-2 rounded-lg transition-colors ${
-            interactionMode === 'draw' 
-              ? 'bg-blue-100 text-blue-600' 
-              : 'hover:bg-gray-100 text-gray-700'
-          }`}
-          title="Modo Dibujar"
-        >
-          <Pen size={18} />
-        </button>
-        <button
           onClick={() => setInteractionMode('pan')}
           className={`p-2 rounded-lg transition-colors ${
             interactionMode === 'pan' 
@@ -138,8 +128,12 @@ const TopToolbar = ({ onToggleSidebar }) => {
               key={tool.id}
               onClick={() => {
                 setCurrentTool(tool.id)
+                // Si seleccionamos la herramienta select, cambiar automáticamente a modo draw para permitir selección
+                if (tool.id === 'select') {
+                  setInteractionMode('draw')
+                }
                 // Si seleccionamos una herramienta de dibujo, cambiar automáticamente a modo draw
-                if (['pen', 'rect', 'circle', 'line', 'text', 'sticky', 'connector'].includes(tool.id)) {
+                if (['rect', 'circle', 'line', 'text', 'sticky', 'connector', 'eraser'].includes(tool.id)) {
                   setInteractionMode('draw')
                 }
               }}
@@ -252,19 +246,37 @@ const TopToolbar = ({ onToggleSidebar }) => {
       {/* Divider */}
       <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>
 
-      {/* Stroke Width */}
-      <div className="flex items-center gap-2 flex-shrink-0 hidden md:flex">
-        <input
-          type="range"
-          min="1"
-          max="10"
-          value={strokeWidth}
-          onChange={(e) => setStrokeWidth(Number(e.target.value))}
-          className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-          title={`Grosor: ${strokeWidth}px`}
-        />
-        <span className="text-sm text-gray-600 w-8">{strokeWidth}</span>
-      </div>
+      {/* Stroke Width - Solo mostrar si no es borrador */}
+      {currentTool !== 'eraser' && (
+        <div className="flex items-center gap-2 flex-shrink-0 hidden md:flex">
+          <input
+            type="range"
+            min="1"
+            max="10"
+            value={strokeWidth}
+            onChange={(e) => setStrokeWidth(Number(e.target.value))}
+            className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            title={`Grosor: ${strokeWidth}px`}
+          />
+          <span className="text-sm text-gray-600 w-8">{strokeWidth}</span>
+        </div>
+      )}
+
+      {/* Eraser Size - Solo mostrar si es borrador */}
+      {currentTool === 'eraser' && (
+        <div className="flex items-center gap-2 flex-shrink-0 hidden md:flex">
+          <input
+            type="range"
+            min="5"
+            max="100"
+            value={eraserSize}
+            onChange={(e) => setEraserSize(Number(e.target.value))}
+            className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            title={`Tamaño del borrador: ${eraserSize}px`}
+          />
+          <span className="text-sm text-gray-600 w-8">{eraserSize}</span>
+        </div>
+      )}
 
       {/* Divider */}
       <div className="w-px h-8 bg-gray-200 hidden md:block flex-shrink-0"></div>

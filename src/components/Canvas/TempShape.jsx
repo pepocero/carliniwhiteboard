@@ -6,7 +6,7 @@ const TempShape = ({ drawingState }) => {
     return null
   }
 
-  const { startPos, currentPos, tool, color, strokeWidth, points } = drawingState
+  const { startPos, currentPos, tool, color, strokeWidth, points, eraserSize } = drawingState
 
   switch (tool) {
     case 'pen':
@@ -81,6 +81,34 @@ const TempShape = ({ drawingState }) => {
           lineJoin="round"
           globalCompositeOperation="source-over"
         />
+      )
+
+    case 'eraser':
+      // Mostrar círculo del borrador en la posición actual
+      const radius = eraserSize || strokeWidth * 2
+      return (
+        <>
+          <Circle
+            x={currentPos.x}
+            y={currentPos.y}
+            radius={radius}
+            stroke="#ef4444"
+            strokeWidth={2}
+            fill="rgba(239, 68, 68, 0.2)"
+            dash={[5, 5]}
+            globalCompositeOperation="source-over"
+          />
+          {/* Mostrar línea del trazo del borrador */}
+          <Line
+            points={[startPos.x, startPos.y, currentPos.x, currentPos.y]}
+            stroke="#ef4444"
+            strokeWidth={radius * 2}
+            lineCap="round"
+            lineJoin="round"
+            globalCompositeOperation="source-over"
+            opacity={0.3}
+          />
+        </>
       )
 
     default:

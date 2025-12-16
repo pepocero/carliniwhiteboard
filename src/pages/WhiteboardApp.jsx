@@ -5,6 +5,7 @@ import CollapsibleSidebar from '../components/UI/CollapsibleSidebar'
 import WhiteboardCanvas from '../components/Canvas/WhiteboardCanvas'
 import TextEditModal from '../components/UI/TextEditModal'
 import StickyNoteEditModal from '../components/UI/StickyNoteEditModal'
+import EraserCursor from '../components/Canvas/EraserCursor'
 import useWhiteboardStore from '../store/useWhiteboardStore'
 
 const WhiteboardApp = () => {
@@ -64,6 +65,9 @@ const WhiteboardApp = () => {
       {/* Edit Modals */}
       <TextEditModal />
       <StickyNoteEditModal />
+      
+      {/* Eraser Cursor */}
+      <EraserCursor />
     </div>
   )
 }

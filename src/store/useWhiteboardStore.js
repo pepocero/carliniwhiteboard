@@ -27,6 +27,7 @@ const useWhiteboardStore = create((set, get) => ({
   currentColor: '#000000',
   strokeWidth: 3,
   fontSize: 16,
+  eraserSize: 20,
   
   // Interaction mode: 'draw', 'pan', 'zoom'
   interactionMode: 'draw',
@@ -209,6 +210,8 @@ const useWhiteboardStore = create((set, get) => ({
   setStrokeWidth: (width) => set({ strokeWidth: width }),
   
   setFontSize: (size) => set({ fontSize: size }),
+  
+  setEraserSize: (size) => set({ eraserSize: size }),
   
   setScale: (scale) => set({ scale }),
   

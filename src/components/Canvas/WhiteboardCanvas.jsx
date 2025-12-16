@@ -17,6 +17,7 @@ import AnchorPoints from './elements/AnchorPoints'
 import SelectionBox from './SelectionBox'
 import ToolHandler from './ToolHandler'
 import TempShape from './TempShape'
+import EraserCursor from './EraserCursor'
 
 const WhiteboardCanvas = () => {
   const stageRef = useRef()
@@ -35,14 +36,29 @@ const WhiteboardCanvas = () => {
     canvasBackgroundColor,
     tempConnection,
     setTempConnection,
-    addElement
+    addElement,
+    eraserSize
   } = useWhiteboardStore()
 
   // Handle stage events
   const handleStageMouseDown = (e) => {
-    const { currentTool, currentColor, strokeWidth, addElement, interactionMode } = useWhiteboardStore.getState()
+    const { currentTool, currentColor, strokeWidth, addElement, interactionMode, eraserSize } = useWhiteboardStore.getState()
     
     const stage = e.target.getStage()
+    
+    // Si la herramienta es select, permitir selección independientemente del modo
+    if (currentTool === 'select') {
+      // Deshabilitar arrastre del stage para permitir selección y movimiento de elementos
+      stage.draggable(false)
+      
+      // Si hacemos clic en área vacía, deseleccionar todo
+      if (e.target === stage) {
+        useWhiteboardStore.getState().clearSelection()
+      }
+      // Si hacemos clic en un elemento, dejar que el elemento maneje la selección
+      // (los elementos tienen su propio handleSelect)
+      return
+    }
     
     // Si estamos en modo pan, solo habilitar arrastre si hacemos clic en el stage vacío
     if (interactionMode === 'pan') {
@@ -100,20 +116,29 @@ const WhiteboardCanvas = () => {
       return
     }
     
-    // Deselect all if clicking on empty area
-    if (e.target === stage) {
-      useWhiteboardStore.getState().clearSelection()
-    } else if (currentTool === 'eraser') {
-      // Handle eraser tool - remove clicked element
-      const clickedElement = findElementByKonvaNode(e.target)
-      if (clickedElement) {
-        const { removeElement } = useWhiteboardStore.getState()
-        removeElement(clickedElement.id)
+    // Handle eraser tool - solo en modo draw
+    if (interactionMode === 'draw' && currentTool === 'eraser') {
+      const pointer = stage.getPointerPosition()
+      const scale = stage.scaleX()
+      const pos = {
+        x: (pointer.x - stage.x()) / scale,
+        y: (pointer.y - stage.y()) / scale
       }
+      
+      // Iniciar borrado con círculo del tamaño seleccionado
+      setDrawingState({
+        isDrawing: true,
+        tool: 'eraser',
+        startPos: pos,
+        currentPos: pos,
+        eraserSize: eraserSize || 20,
+        erasedElements: [] // Elementos que han sido borrados durante este trazo
+      })
+      return
     }
     
     // Solo permitir dibujar si estamos en modo draw
-    if (interactionMode === 'draw' && ['pen', 'rect', 'circle', 'line'].includes(currentTool)) {
+    if (interactionMode === 'draw' && ['rect', 'circle', 'line'].includes(currentTool)) {
       const stage = e.target.getStage()
       const pointer = stage.getPointerPosition()
       const scale = stage.scaleX()
@@ -397,6 +422,48 @@ const WhiteboardCanvas = () => {
       if (drawingState.tool === 'pen') {
         updatedDrawingState.points = [...(drawingState.points || []), pos.x, pos.y]
       }
+      
+      // Para el borrador, actualizar la posición actual y borrar elementos que toque
+      if (drawingState.tool === 'eraser') {
+        updatedDrawingState.currentPos = pos
+        
+        // Detectar y borrar elementos que están dentro del círculo del borrador
+        const { elements, removeElement, updateElement } = useWhiteboardStore.getState()
+        const eraserRadius = drawingState.eraserSize || eraserSize
+        
+        // Calcular el área del borrador (círculo)
+        const eraserArea = {
+          x: pos.x - eraserRadius,
+          y: pos.y - eraserRadius,
+          width: eraserRadius * 2,
+          height: eraserRadius * 2,
+          centerX: pos.x,
+          centerY: pos.y,
+          radius: eraserRadius
+        }
+        
+        // Verificar cada elemento para ver si está dentro del área del borrador
+        elements.forEach(element => {
+          // Evitar borrar elementos que ya fueron marcados como borrados
+          if (drawingState.erasedElements && drawingState.erasedElements.includes(element.id)) {
+            return
+          }
+          
+          const bounds = getElementBounds(element)
+          
+          // Verificar si el elemento intersecta con el círculo del borrador
+          if (isElementInEraserArea(element, bounds, eraserArea)) {
+            // Marcar como borrado
+            if (!updatedDrawingState.erasedElements) {
+              updatedDrawingState.erasedElements = []
+            }
+            updatedDrawingState.erasedElements.push(element.id)
+            
+            // Borrar el elemento
+            removeElement(element.id)
+          }
+        })
+      }
 
       setDrawingState(updatedDrawingState)
     }
@@ -414,8 +481,14 @@ const WhiteboardCanvas = () => {
     }
     
     if (drawingState && drawingState.isDrawing) {
-      const { startPos, currentPos, tool, color, strokeWidth, points, fromElement } = drawingState
-      const { addElement, setCurrentTool } = useWhiteboardStore.getState()
+      const { startPos, currentPos, tool, color, strokeWidth, points, fromElement, targetElement, eraserSize } = drawingState
+      const { addElement, setCurrentTool, updateElement, removeElement } = useWhiteboardStore.getState()
+
+      // Handle eraser tool - los elementos ya fueron borrados durante el movimiento
+      if (tool === 'eraser') {
+        setDrawingState(null)
+        return
+      }
 
       // Handle connector tool
       if (tool === 'connector') {
@@ -705,6 +778,24 @@ const WhiteboardCanvas = () => {
     return null
   }
 
+  // Helper function to check if an element is in eraser area
+  const isElementInEraserArea = (element, bounds, eraserArea) => {
+    // Verificar si el círculo del borrador intersecta con el elemento
+    const { centerX, centerY, radius } = eraserArea
+    
+    // Calcular el punto más cercano del rectángulo al centro del círculo
+    const closestX = Math.max(bounds.x, Math.min(centerX, bounds.x + bounds.width))
+    const closestY = Math.max(bounds.y, Math.min(centerY, bounds.y + bounds.height))
+    
+    // Calcular la distancia desde el punto más cercano al centro del círculo
+    const distance = Math.sqrt(
+      Math.pow(closestX - centerX, 2) + Math.pow(closestY - centerY, 2)
+    )
+    
+    // Si la distancia es menor que el radio, hay intersección
+    return distance <= radius
+  }
+
   // Helper function to get element bounds
   const getElementBounds = (element) => {
     switch (element.type) {
@@ -824,6 +915,7 @@ const WhiteboardCanvas = () => {
 
   return (
     <div className="canvas-container" style={backgroundStyle}>
+      <EraserCursor />
       <Stage
         ref={stageRef}
         width={window.innerWidth}
@@ -842,6 +934,8 @@ const WhiteboardCanvas = () => {
             ? 'move' 
             : interactionMode === 'zoom' 
             ? 'zoom-in' 
+            : currentTool === 'eraser'
+            ? 'none'
             : currentTool === 'select' 
             ? 'default' 
             : 'crosshair' 
